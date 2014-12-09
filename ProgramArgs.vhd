@@ -47,18 +47,35 @@ use IEEE.STD_LOGIC_1164.ALL;
 ------------------------
 entity ProgramArgs is
 	Port( 
-			clock : in STD_LOGIC;
-			reset : in STD_LOGIC;
-			x_in : in STD_LOGIC_VECTOR (31 downto 0);
-			y_in : in STD_LOGIC_VECTOR (31 downto 0);
-			a_out : out STD_LOGIC_VECTOR (31 downto 0);
-			b_out : out STD_LOGIC_VECTOR (31 downto 0);
-			c_out : out STD_LOGIC_VECTOR (31 downto 0)
+			clock 	: in STD_LOGIC;
+			reset 	: in STD_LOGIC;
+			x_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			y_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			LCD_E 	: out STD_LOGIC;
+			LCD_RS 	: out STD_LOGIC;
+			LCD_RW	: out STD_LOGIC;
+			LCD_DB	: out STD_LOGIC_VECTOR(7 downto 0);
+			LED 		: out STD_LOGIC_VECTOR(7 downto 0)
 		  );
 end ProgramArgs;
 
 architecture Behavioral of ProgramArgs is
 	
+	component EmitLCD is
+		Port( 
+				clock 		: in STD_LOGIC;
+				reset 		: in STD_LOGIC; 
+				var_index 	: in STD_LOGIC_VECTOR(2 downto 0);		
+				LCDDataBus	: out STD_LOGIC_VECTOR(7 downto 0); 
+				LCD_E			: out STD_LOGIC;
+				LCD_RS		: out STD_LOGIC;
+				LCD_RW		: out STD_LOGIC
+			 );
+	end component EmitLCD;
+
 	component ALU_Add is
 		Port( 
 				reset : in STD_LOGIC;
@@ -74,7 +91,22 @@ architecture Behavioral of ProgramArgs is
 	signal b : STD_LOGIC_VECTOR (31 downto 0);
 	signal c : STD_LOGIC_VECTOR (31 downto 0);
 
+	-- LCD view
+	-- index into which variable to preview
+	signal var_index: STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
+	
 begin
+
+	EmitMsg : EmitLCD port map
+	(
+		clock 		=> clock, 
+		reset 		=> reset, 	
+		var_index 	=> var_index,	
+		LCDDataBus 	=> LCD_DB, 
+		LCD_E  		=> LCD_E,   
+		LCD_RS 		=> LCD_RS,  
+		LCD_RW 		=> LCD_RW
+	);
 
 	Add0 : ALU_Add port map
 	(
