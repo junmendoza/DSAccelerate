@@ -48,9 +48,10 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity ProgramArgs is
 	Port( 
 			clock 	: in STD_LOGIC;
-			reset 	: in STD_LOGIC;
-			x_in 		: in STD_LOGIC_VECTOR (31 downto 0);
-			y_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			sw0	 	: in STD_LOGIC;
+			sw1	 	: in STD_LOGIC;
+			sw2	 	: in STD_LOGIC;
+			sw3	 	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -84,6 +85,9 @@ architecture Behavioral of ProgramArgs is
 				result : out  STD_LOGIC_VECTOR (31 downto 0)
 			  );
 	end component ALU_Add;
+	
+	-- program input signals
+	signal input_set : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
 
 	signal x : STD_LOGIC_VECTOR (31 downto 0);
 	signal y : STD_LOGIC_VECTOR (31 downto 0);
@@ -100,7 +104,7 @@ begin
 	EmitMsg : EmitLCD port map
 	(
 		clock 		=> clock, 
-		reset 		=> reset, 	
+		reset 		=> sw0, 	
 		var_index 	=> var_index,	
 		LCDDataBus 	=> LCD_DB, 
 		LCD_E  		=> LCD_E,   
@@ -110,23 +114,48 @@ begin
 
 	Add0 : ALU_Add port map
 	(
-		reset => reset,
+		reset => sw0,
 		op1 => a,
 		op2 => b,
 		result => c
 	);
-
-	ProcExecuteFromArgs : process(x_in, y_in)
+	
+	DecodeInput : process(sw0, sw1, sw2, sw3)
 	begin
-		ResetSync : if reset = '0' then
-			x <= x_in;
-			y <= y_in;
+		ResetSync : if sw0 = '1' then
+			input_set <= "000";
+		elsif sw0 = '0' then
+			input_set(2) <= sw3;
+			input_set(1) <= sw2;
+			input_set(0) <= sw1;
+		end if ResetSync;
+	end process DecodeInput;
+
+	ProcExecuteFromArgs : process(sw0, input_set)
+	begin
+		ResetSync : if sw0 = '0' then
+			GetInputSet : if input_set = "000" then
+				x <= X"00000001";
+				y <= X"00000002";
+			elsif input_set = "001" then
+				x <= X"00000003";
+				y <= X"00000004";
+			elsif input_set = "010" then
+				x <= X"00000005";
+				y <= X"00000006";
+			elsif input_set = "011" then
+				x <= X"00000007";
+				y <= X"00000008";
+			else
+				x <= X"00000009";
+				y <= X"0000000A";
+			end if GetInputSet;
 		end if ResetSync;
 	end process ProcExecuteFromArgs;
 	
 	addop : process(x, y)
 	begin
-		ResetSync : if reset = '0' then
+		ResetSync : if sw0 = '0' then
 			a <= x;
 			b <= y;
 		end if ResetSync;
@@ -134,21 +163,21 @@ begin
 	
 	assign_a : process(a)
 	begin
-		ResetSync : if reset = '0' then
+		ResetSync : if sw0 = '0' then
 			a_out <= a;
 		end if ResetSync;
 	end process assign_a;
 	
 	assign_b : process(b)
 	begin
-		ResetSync : if reset = '0' then
+		ResetSync : if sw0 = '0' then
 			b_out <= b;
 		end if ResetSync;
 	end process assign_b;
 	
 	assign_c : process(c)
 	begin
-		ResetSync : if reset = '0' then
+		ResetSync : if sw0 = '0' then
 			c_out <= c;
 		end if ResetSync;
 	end process assign_c;

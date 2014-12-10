@@ -42,9 +42,10 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
     COMPONENT ProgramArgs
     PORT(
 			clock 	: in STD_LOGIC;
-			reset 	: in STD_LOGIC;
-			x_in 		: in STD_LOGIC_VECTOR (31 downto 0);
-			y_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			sw0	 	: in STD_LOGIC;
+			sw1	 	: in STD_LOGIC;
+			sw2	 	: in STD_LOGIC;
+			sw3	 	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -59,9 +60,10 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 
    --Inputs
    signal clock : std_logic := '0';
-   signal reset : std_logic := '1';
-   signal x_in : std_logic_vector(31 downto 0) := (others => '0');
-   signal y_in : std_logic_vector(31 downto 0) := (others => '0');
+   signal sw0 : std_logic := '1';
+   signal sw1 : std_logic := '0';
+   signal sw2 : std_logic := '0';
+   signal sw3 : std_logic := '0';
 
  	--Outputs
    signal a_out 	: std_logic_vector(31 downto 0);
@@ -81,9 +83,10 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: ProgramArgs PORT MAP (
           clock 	=> clock,
-          reset 	=> reset,
-          x_in 	=> x_in,
-          y_in 	=> y_in,
+          sw0 		=> sw0,
+          sw1		=> sw1,
+          sw2 		=> sw2,
+			 sw3		=> sw3,
           a_out 	=> a_out,
           b_out 	=> b_out,
           c_out 	=> c_out,
@@ -91,8 +94,7 @@ BEGIN
 			 LCD_RS 	=> LCD_RS, 	
 			 LCD_RW	=> LCD_RW,	
 			 LCD_DB	=> LCD_DB,	
-			 LED 		=> LED 		
-			 
+			 LED 		=> LED 	
         );
 
 
@@ -101,18 +103,37 @@ BEGIN
    begin		
 		
 		clock <= '0';
-		reset <= '1';
+		sw0 <= '1';
 		wait for 5 ns;
 		
-		clock <= not clock;
-		reset <= '0';
-		wait for 1 ns;
+		clock <= '1';
+		sw0 <= '0';
+		wait for 5 ns;
 		
-		clock <= not clock;
-		x_in <= X"0000000A";
-		y_in <= X"00000005";
-		wait for 1 ns;
+		clock <= '0';
+		wait for 5 ns;
 		
+		-- Set input
+		clock <= '1';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '0';
+		wait for 5 ns;
+		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Set input
+		clock <= '1';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '1';
+		wait for 5 ns;
+		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Hold
 		for i in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
