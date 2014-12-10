@@ -31,9 +31,10 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity DecodeDisplayString is
 	Port( 
-			reset : in  STD_LOGIC;
-			var_index : in  STD_LOGIC_VECTOR (2 downto 0);
-			char_array : out  STD_LOGIC_VECTOR (79 downto 0)
+			reset : in STD_LOGIC;
+			exec_done : in STD_LOGIC;
+			var_index : in STD_LOGIC_VECTOR (2 downto 0);
+			char_array : out STD_LOGIC_VECTOR (79 downto 0)
 		 );
 end DecodeDisplayString;
 
@@ -54,7 +55,7 @@ begin
 
 	process (var_index)
 	begin
-		if reset = '1' then
+		ResetSync : if reset = '1' then
 			char_array(79 downto 72) <= "01101110";
 			char_array(71 downto 64) <= "01101110";
 			char_array(63 downto 56) <= "01101110";
@@ -66,30 +67,32 @@ begin
 			char_array(15 downto 8)  <= "01101110";
 			char_array(7 downto 0)   <= "01101110";
 		elsif reset = '0' then
-			if var_index = "000" then
-				char_array(79 downto 72) <= "01001010";
-				char_array(71 downto 64) <= "01110101";
-				char_array(63 downto 56) <= "01101110";
-				char_array(55 downto 48) <= "01001101";
-				char_array(47 downto 40) <= "01001010";
-				char_array(39 downto 32) <= "01110101";
-				char_array(31 downto 24) <= "01001010";
-				char_array(23 downto 16) <= "01001010";
-				char_array(15 downto 8)  <= "01001010";
-				char_array(7 downto 0)   <= "01001010";
-			elsif var_index = "001" then
-				char_array(79 downto 72) <= "01001010";
-				char_array(71 downto 64) <= "01001010";
-				char_array(63 downto 56) <= "01001010";
-				char_array(55 downto 48) <= "01001010";
-				char_array(47 downto 40) <= "01001010";
-				char_array(39 downto 32) <= "01110101";
-				char_array(31 downto 24) <= "01101110";
-				char_array(23 downto 16) <= "01001101";
-				char_array(15 downto 8)  <= "01001010";
-				char_array(7 downto 0)   <= "01110101";
-			end if;
-		end if;
+			IsExecutionComplete : if exec_done = '0' then
+				GetDisplayString : if var_index = "000" then
+					char_array(79 downto 72) <= "01001010";
+					char_array(71 downto 64) <= "01110101";
+					char_array(63 downto 56) <= "01101110";
+					char_array(55 downto 48) <= "01001101";
+					char_array(47 downto 40) <= "01001010";
+					char_array(39 downto 32) <= "01110101";
+					char_array(31 downto 24) <= "01001010";
+					char_array(23 downto 16) <= "01001010";
+					char_array(15 downto 8)  <= "01001010";
+					char_array(7 downto 0)   <= "01001010";
+				elsif var_index = "001" then
+					char_array(79 downto 72) <= "01001010";
+					char_array(71 downto 64) <= "01001010";
+					char_array(63 downto 56) <= "01001010";
+					char_array(55 downto 48) <= "01001010";
+					char_array(47 downto 40) <= "01001010";
+					char_array(39 downto 32) <= "01110101";
+					char_array(31 downto 24) <= "01101110";
+					char_array(23 downto 16) <= "01001101";
+					char_array(15 downto 8)  <= "01001010";
+					char_array(7 downto 0)   <= "01110101";
+				end if GetDisplayString;
+			end if IsExecutionComplete;
+		end if ResetSync;
 	end process;
 
 end Behavioral;

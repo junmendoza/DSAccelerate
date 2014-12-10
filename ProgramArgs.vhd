@@ -22,12 +22,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
 ------------------------
 -- a = x
@@ -80,6 +80,7 @@ architecture Behavioral of ProgramArgs is
 	component DecodeDisplayString is
 		Port( 
 				reset : in  STD_LOGIC;
+				exec_done : in STD_LOGIC;
 				var_index : in  STD_LOGIC_VECTOR (2 downto 0);
 				char_array : out  STD_LOGIC_VECTOR (79 downto 0)
 			 );
@@ -108,11 +109,17 @@ architecture Behavioral of ProgramArgs is
 	signal var_index: STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
 	signal char_array: STD_LOGIC_VECTOR (79 downto 0) := (others => '0');
 	
+	-- Increment counter for every execution unit completed
+	signal executionDone : STD_LOGIC := '0';
+	signal executedUnits : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+	constant executionCount : integer:= 3;
+	
 begin
 
 	DisplayString : DecodeDisplayString port map
 	(
 		reset 		=> sw0,
+		exec_done	=> executionDone,
 		var_index 	=> var_index,	
 		char_array 	=> char_array 	
 	);
@@ -197,6 +204,30 @@ begin
 			c_out <= c;
 		end if ResetSync;
 	end process assign_c;
+	
+	
+	ProcIncrementExecutionUnit : process(a,b,c)
+		variable execunit : integer;
+		variable cnt : integer;
+	begin
+		ResetSync : if sw0 = '0' then
+			execunit := to_integer(signed(executedUnits));
+			cnt := execunit + 1;
+			executedUnits <= std_logic_vector(to_signed(cnt, 32));
+		end if ResetSync;
+	end process ProcIncrementExecutionUnit;
+
+	EndProgram : process(executedUnits)
+		variable execunit : integer;
+	begin
+		ResetSync : if sw0 = '0' then
+			execunit := to_integer(signed(executedUnits));
+			if execunit = executionCount then
+				executionDone <= '1';
+			end if;
+		end if ResetSync;
+	end process EndProgram;
+	
 
 end Behavioral;
 
