@@ -54,7 +54,18 @@ begin
 
 	process (var_index)
 	begin
-		if reset = '0' then
+		if reset = '1' then
+			char_array(79 downto 72) <= "01101110";
+			char_array(71 downto 64) <= "01101110";
+			char_array(63 downto 56) <= "01101110";
+			char_array(55 downto 48) <= "01101110";
+			char_array(47 downto 40) <= "01101110";
+			char_array(39 downto 32) <= "01101110";
+			char_array(31 downto 24) <= "01101110";
+			char_array(23 downto 16) <= "01101110";
+			char_array(15 downto 8)  <= "01101110";
+			char_array(7 downto 0)   <= "01101110";
+		elsif reset = '0' then
 			if var_index = "000" then
 				char_array(79 downto 72) <= "01001010";
 				char_array(71 downto 64) <= "01110101";
