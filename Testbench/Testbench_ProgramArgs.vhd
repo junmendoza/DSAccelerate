@@ -41,13 +41,18 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
  
     COMPONENT ProgramArgs
     PORT(
-         clock : IN  std_logic;
-         reset : IN  std_logic;
-         x_in : IN  std_logic_vector(31 downto 0);
-         y_in : IN  std_logic_vector(31 downto 0);
-         a_out : OUT  std_logic_vector(31 downto 0);
-         b_out : OUT  std_logic_vector(31 downto 0);
-         c_out : OUT  std_logic_vector(31 downto 0)
+			clock 	: in STD_LOGIC;
+			reset 	: in STD_LOGIC;
+			x_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			y_in 		: in STD_LOGIC_VECTOR (31 downto 0);
+			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
+			LCD_E 	: out STD_LOGIC;
+			LCD_RS 	: out STD_LOGIC;
+			LCD_RW	: out STD_LOGIC;
+			LCD_DB	: out STD_LOGIC_VECTOR(7 downto 0);
+			LED 		: out STD_LOGIC_VECTOR(7 downto 0)
         );
     END COMPONENT;
     
@@ -59,9 +64,14 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
    signal y_in : std_logic_vector(31 downto 0) := (others => '0');
 
  	--Outputs
-   signal a_out : std_logic_vector(31 downto 0);
-   signal b_out : std_logic_vector(31 downto 0);
-   signal c_out : std_logic_vector(31 downto 0);
+   signal a_out 	: std_logic_vector(31 downto 0);
+   signal b_out 	: std_logic_vector(31 downto 0);
+   signal c_out 	: std_logic_vector(31 downto 0);
+	signal LCD_E 	: STD_LOGIC;
+	signal LCD_RS 	: STD_LOGIC;
+	signal LCD_RW	: STD_LOGIC;
+	signal LCD_DB	: STD_LOGIC_VECTOR(7 downto 0);
+	signal LED 		: STD_LOGIC_VECTOR(7 downto 0);
 
    -- Clock period definitions
 	constant clkCycles : integer := 10;
@@ -70,13 +80,19 @@ BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: ProgramArgs PORT MAP (
-          clock => clock,
-          reset => reset,
-          x_in => x_in,
-          y_in => y_in,
-          a_out => a_out,
-          b_out => b_out,
-          c_out => c_out
+          clock 	=> clock,
+          reset 	=> reset,
+          x_in 	=> x_in,
+          y_in 	=> y_in,
+          a_out 	=> a_out,
+          b_out 	=> b_out,
+          c_out 	=> c_out,
+			 LCD_E 	=> LCD_E, 	
+			 LCD_RS 	=> LCD_RS, 	
+			 LCD_RW	=> LCD_RW,	
+			 LCD_DB	=> LCD_DB,	
+			 LED 		=> LED 		
+			 
         );
 
 
