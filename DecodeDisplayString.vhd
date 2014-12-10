@@ -53,7 +53,7 @@ architecture Behavioral of DecodeDisplayString is
 	
 begin
 
-	process (var_index)
+	ProcDecodeString : process (exec_done, var_index)
 	begin
 		ResetSync : if reset = '1' then
 			char_array(79 downto 72) <= "01101110";
@@ -67,7 +67,7 @@ begin
 			char_array(15 downto 8)  <= "01101110";
 			char_array(7 downto 0)   <= "01101110";
 		elsif reset = '0' then
-			IsExecutionComplete : if exec_done = '0' then
+			IsExecutionComplete : if exec_done = '1' then
 				GetDisplayString : if var_index = "000" then
 					char_array(79 downto 72) <= "01001010";
 					char_array(71 downto 64) <= "01110101";
@@ -93,7 +93,7 @@ begin
 				end if GetDisplayString;
 			end if IsExecutionComplete;
 		end if ResetSync;
-	end process;
+	end process ProcDecodeString;
 
 end Behavioral;
 

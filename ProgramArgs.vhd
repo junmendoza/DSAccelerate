@@ -111,8 +111,8 @@ architecture Behavioral of ProgramArgs is
 	
 	-- Increment counter for every execution unit completed
 	signal executionDone : STD_LOGIC := '0';
-	signal executedUnits : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-	constant executionCount : integer:= 3;
+	signal clockCycles : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+	constant maxCycles : integer:= 5;
 	
 begin
 
@@ -206,23 +206,25 @@ begin
 	end process assign_c;
 	
 	
-	ProcIncrementExecutionUnit : process(a,b,c)
-		variable execunit : integer;
+	ProcIncrementExecutionUnit : process(clock)
+		variable clkcyc : integer;
 		variable cnt : integer;
 	begin
 		ResetSync : if sw0 = '0' then
-			execunit := to_integer(signed(executedUnits));
-			cnt := execunit + 1;
-			executedUnits <= std_logic_vector(to_signed(cnt, 32));
+			ClockSync : if rising_edge(clock) then
+				clkcyc := to_integer(signed(clockCycles));
+				cnt := clkcyc + 1;
+				clockCycles <= std_logic_vector(to_signed(cnt, 8));
+			end if ClockSync;
 		end if ResetSync;
 	end process ProcIncrementExecutionUnit;
 
-	EndProgram : process(executedUnits)
-		variable execunit : integer;
+	EndProgram : process(clockCycles)
+		variable clkcyc : integer;
 	begin
 		ResetSync : if sw0 = '0' then
-			execunit := to_integer(signed(executedUnits));
-			if execunit = executionCount then
+			clkcyc := to_integer(signed(clockCycles));
+			if clkcyc = maxCycles then
 				executionDone <= '1';
 			end if;
 		end if ResetSync;

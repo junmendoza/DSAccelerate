@@ -76,7 +76,7 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 	signal LED 		: STD_LOGIC_VECTOR(7 downto 0);
 
    -- Clock period definitions
-	constant clkCycles : integer := 10;
+	constant clkCycles : integer := 10000000;
  
 BEGIN
  
@@ -125,9 +125,9 @@ BEGIN
 		
 		-- Set input
 		clock <= '1';
-		sw3 <= '0';
-		sw2 <= '0';
-		sw1 <= '1';
+--		sw3 <= '0';
+--		sw2 <= '0';
+--		sw1 <= '1';
 		wait for 5 ns;
 		
 		clock <= '0';
