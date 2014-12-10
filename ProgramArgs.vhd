@@ -48,7 +48,7 @@ use UNISIM.VComponents.all;
 entity ProgramArgs is
 	Port( 
 			clock 	: in STD_LOGIC;
-			sw0	 	: in STD_LOGIC;
+			reset	 	: in STD_LOGIC;
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
@@ -118,7 +118,7 @@ begin
 
 	DisplayString : DecodeDisplayString port map
 	(
-		reset 		=> sw0,
+		reset 		=> reset,
 		exec_done	=> executionDone,
 		var_index 	=> var_index,	
 		char_array 	=> char_array 	
@@ -127,7 +127,7 @@ begin
 	EmitMsg : EmitLCD port map
 	(
 		clock 		=> clock, 
-		reset 		=> sw0, 	
+		reset 		=> reset, 	
 		char_array 	=> char_array,	
 		LCDDataBus 	=> LCD_DB, 
 		LCD_E  		=> LCD_E,   
@@ -137,26 +137,26 @@ begin
 
 	Add0 : ALU_Add port map
 	(
-		reset => sw0,
+		reset => reset,
 		op1 => a,
 		op2 => b,
 		result => c
 	);
 	
-	SetInputArgsBits : process(sw0, sw1, sw2, sw3)
+	SetInputArgsBits : process(reset, sw1, sw2, sw3)
 	begin
-		ResetSync : if sw0 = '1' then
+		ResetSync : if reset = '1' then
 			input_set <= "000";
-		elsif sw0 = '0' then
+		elsif reset = '0' then
 			input_set(2) <= sw3;
 			input_set(1) <= sw2;
 			input_set(0) <= sw1;
 		end if ResetSync;
 	end process SetInputArgsBits;
 
-	DecodeArgs : process(sw0, input_set)
+	DecodeArgs : process(reset, input_set)
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '0' then
 			GetInputSet : if input_set = "000" then
 				x <= X"00000001";
 				y <= X"00000002";
@@ -178,7 +178,7 @@ begin
 	
 	addop : process(x, y)
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '0' then
 			a <= x;
 			b <= y;
 		end if ResetSync;
@@ -186,43 +186,49 @@ begin
 	
 	assign_a : process(a)
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '0' then
 			a_out <= a;
 		end if ResetSync;
 	end process assign_a;
 	
 	assign_b : process(b)
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '0' then
 			b_out <= b;
 		end if ResetSync;
 	end process assign_b;
 	
 	assign_c : process(c)
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '0' then
 			c_out <= c;
 		end if ResetSync;
 	end process assign_c;
 	
 	
-	ProcIncrementExecutionUnit : process(clock)
+	ProcIncrementExecutionUnit : process(clock, reset)
 		variable clkcyc : integer;
 		variable cnt : integer;
 	begin
-		ResetSync : if sw0 = '0' then
-			ClockSync : if rising_edge(clock) then
-				clkcyc := to_integer(signed(clockCycles));
-				cnt := clkcyc + 1;
-				clockCycles <= std_logic_vector(to_signed(cnt, 8));
-			end if ClockSync;
+		ResetSync : if reset = '1' then
+			clockCycles <= "00000000";
+		elsif reset = '0' then
+			if executionDone = '0' then
+				ClockSync : if rising_edge(clock) then
+					clkcyc := to_integer(signed(clockCycles));
+					cnt := clkcyc + 1;
+					clockCycles <= std_logic_vector(to_signed(cnt, 8));
+				end if ClockSync;
+			end if;
 		end if ResetSync;
 	end process ProcIncrementExecutionUnit;
 
 	EndProgram : process(clockCycles)
 		variable clkcyc : integer;
 	begin
-		ResetSync : if sw0 = '0' then
+		ResetSync : if reset = '1' then
+			executionDone <= '0';
+		elsif reset = '0' then
 			clkcyc := to_integer(signed(clockCycles));
 			if clkcyc = maxCycles then
 				executionDone <= '1';

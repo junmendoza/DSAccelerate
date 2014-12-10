@@ -42,7 +42,7 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
     COMPONENT ProgramArgs
     PORT(
 			clock 	: in STD_LOGIC;
-			sw0	 	: in STD_LOGIC;
+			reset	 	: in STD_LOGIC;
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
@@ -60,7 +60,7 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 
    --Inputs
    signal clock : std_logic := '0';
-   signal sw0 : std_logic := '1';
+   signal reset : std_logic := '1';
    signal sw1 : std_logic := '0';
    signal sw2 : std_logic := '0';
    signal sw3 : std_logic := '0';
@@ -76,14 +76,14 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 	signal LED 		: STD_LOGIC_VECTOR(7 downto 0);
 
    -- Clock period definitions
-	constant clkCycles : integer := 10000000;
+	constant clkCycles : integer := 100;
  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: ProgramArgs PORT MAP (
           clock 	=> clock,
-          sw0 		=> sw0,
+          reset 		=> reset,
           sw1		=> sw1,
           sw2 		=> sw2,
 			 sw3		=> sw3,
@@ -102,14 +102,21 @@ BEGIN
    stim_proc: process
    begin		
 		
+		-----------------------------------
+		-- Initialize and reset
+		-----------------------------------
 		clock <= '0';
-		sw0 <= '1';
+		reset <= '1';
 		wait for 5 ns;
 		
 		clock <= '1';
-		sw0 <= '0';
+		reset <= '0';
 		wait for 5 ns;
 		
+		-----------------------------------
+		-- Sequence 1
+		-- Execute with args sw3-sw1 = 000 
+		-----------------------------------
 		clock <= '0';
 		wait for 5 ns;
 		
@@ -120,14 +127,47 @@ BEGIN
 		sw1 <= '0';
 		wait for 5 ns;
 		
+		-- Hold
+		for i in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
+		
+		--  Preview next var		
 		clock <= '0';
 		wait for 5 ns;
 		
 		-- Set input
 		clock <= '1';
---		sw3 <= '0';
---		sw2 <= '0';
---		sw1 <= '1';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '1';
+		wait for 5 ns;
+		
+		
+		-----------------------------------
+		-- Initialize and reset
+		-----------------------------------
+		clock <= '0';
+		reset <= '1';
+		wait for 5 ns;
+		
+		clock <= '1';
+		reset <= '0';
+		wait for 5 ns;
+		
+		-----------------------------------
+		-- Sequence 2
+		-- Execute with args sw3-sw1 = 001 
+		-----------------------------------
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Set input
+		clock <= '1';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '1';
 		wait for 5 ns;
 		
 		clock <= '0';
@@ -138,6 +178,17 @@ BEGIN
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
+		
+		-- Preview next var		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Set input
+		clock <= '1';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '1';
+		wait for 5 ns;
 		
       wait;
 		
