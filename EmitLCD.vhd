@@ -9,7 +9,7 @@ entity EmitLCD is
 	Port( 
 			clock 		: in STD_LOGIC;
 			reset 		: in STD_LOGIC; 
-			var_index 	: in STD_LOGIC_VECTOR(2 downto 0);		
+			char_array	: in STD_LOGIC_VECTOR(79 downto 0);		
 			LCDDataBus	: out STD_LOGIC_VECTOR(7 downto 0); 
 			LCD_E			: out STD_LOGIC;
 			LCD_RS		: out STD_LOGIC;
@@ -61,27 +61,20 @@ constant WRITE_NEXT_HOLD : integer	:= 10;
 constant TRANSMIT_4BIT_HOLD : integer	:= 5;
 
 
+--------------------------------
 -- LCD setup constants
---
+--------------------------------
 -- 0x28 00101000	
 -- 0x06 00000110
 -- 0x0C 00001100
 -- 0x01 00000001
 -- write init 10001000
-
-
+--------------------------------
 constant kSetupFunctionSet 	: STD_LOGIC_VECTOR(7 downto 0) := "00101000";
 constant kSetupEntryModeSet 	: STD_LOGIC_VECTOR(7 downto 0) := "00000110";
 constant kSetupDisplayOnOff 	: STD_LOGIC_VECTOR(7 downto 0) := "00001100";
 constant kSetupClearDisplay 	: STD_LOGIC_VECTOR(7 downto 0) := "00000001";
 constant kSetStartAddress 		: STD_LOGIC_VECTOR(7 downto 0) := "10001000";
-
-constant kW1 : STD_LOGIC_VECTOR(7 downto 0) := "01001010";
-constant kW2 : STD_LOGIC_VECTOR(7 downto 0) := "01110101";
-constant kW3 : STD_LOGIC_VECTOR(7 downto 0) := "01101110";
-constant kW4 : STD_LOGIC_VECTOR(7 downto 0) := "01001101";
-constant kW5 : STD_LOGIC_VECTOR(7 downto 0) := "01001010";
-constant kW6 : STD_LOGIC_VECTOR(7 downto 0) := "01110101";
 
 signal CmdByte : STD_LOGIC_VECTOR(7 downto 0);
 signal LCD_RS_Val : STD_LOGIC;
@@ -158,7 +151,7 @@ begin
 
 
 	-- Process to handle incoming data to emit
-	process(var_index)
+	process(char_array)
 	begin
 		ResetState : if reset = '1' then
 			lcdWriteflag <= LCD_WRITE_FLAG_OFF;
@@ -299,27 +292,27 @@ begin
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= W1;
 							elsif lcdWriteState = W1 then
-								CmdByte <= kW1;
+								CmdByte <= char_array(79 downto 72);
 								LCD_RS_Val <= '1';
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= W2;
 							elsif lcdWriteState = W2 then
-								CmdByte <= kW2;
+								CmdByte <= char_array(71 downto 64);
 								LCD_RS_Val <= '1';
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= W3;
 							elsif lcdWriteState = W3 then
-								CmdByte <= kW3;
+								CmdByte <= char_array(63 downto 56);
 								LCD_RS_Val <= '1';
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= W4;
 							elsif lcdWriteState = W4 then
-								CmdByte <= kW4;
+								CmdByte <= char_array(55 downto 48);
 								LCD_RS_Val <= '1';
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= W5;
 							elsif lcdWriteState = W5 then
-								CmdByte <= kW5;
+								CmdByte <= char_array(47 downto 40);
 								LCD_RS_Val <= '1';
 								nextCmdWait := WRITE_CLKWAIT;
 								lcdWriteState <= WRITE_DONE;

@@ -69,13 +69,21 @@ architecture Behavioral of ProgramArgs is
 		Port( 
 				clock 		: in STD_LOGIC;
 				reset 		: in STD_LOGIC; 
-				var_index 	: in STD_LOGIC_VECTOR(2 downto 0);		
+				char_array	: in STD_LOGIC_VECTOR(79 downto 0);		
 				LCDDataBus	: out STD_LOGIC_VECTOR(7 downto 0); 
 				LCD_E			: out STD_LOGIC;
 				LCD_RS		: out STD_LOGIC;
 				LCD_RW		: out STD_LOGIC
 			 );
 	end component EmitLCD;
+	
+	component DecodeDisplayString is
+		Port( 
+				reset : in  STD_LOGIC;
+				var_index : in  STD_LOGIC_VECTOR (2 downto 0);
+				char_array : out  STD_LOGIC_VECTOR (79 downto 0)
+			 );
+	end component DecodeDisplayString;
 
 	component ALU_Add is
 		Port( 
@@ -98,14 +106,22 @@ architecture Behavioral of ProgramArgs is
 	-- LCD view
 	-- index into which variable to preview
 	signal var_index: STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
+	signal char_array: STD_LOGIC_VECTOR (79 downto 0) := (others => '0');
 	
 begin
+
+	DisplayString : DecodeDisplayString port map
+	(
+		reset 		=> sw0,
+		var_index 	=> var_index,	
+		char_array 	=> char_array 	
+	);
 
 	EmitMsg : EmitLCD port map
 	(
 		clock 		=> clock, 
 		reset 		=> sw0, 	
-		var_index 	=> var_index,	
+		char_array 	=> char_array,	
 		LCDDataBus 	=> LCD_DB, 
 		LCD_E  		=> LCD_E,   
 		LCD_RS 		=> LCD_RS,  
@@ -120,7 +136,7 @@ begin
 		result => c
 	);
 	
-	DecodeInput : process(sw0, sw1, sw2, sw3)
+	SetInputArgsBits : process(sw0, sw1, sw2, sw3)
 	begin
 		ResetSync : if sw0 = '1' then
 			input_set <= "000";
@@ -129,9 +145,9 @@ begin
 			input_set(1) <= sw2;
 			input_set(0) <= sw1;
 		end if ResetSync;
-	end process DecodeInput;
+	end process SetInputArgsBits;
 
-	ProcExecuteFromArgs : process(sw0, input_set)
+	DecodeArgs : process(sw0, input_set)
 	begin
 		ResetSync : if sw0 = '0' then
 			GetInputSet : if input_set = "000" then
@@ -151,7 +167,7 @@ begin
 				y <= X"0000000A";
 			end if GetInputSet;
 		end if ResetSync;
-	end process ProcExecuteFromArgs;
+	end process DecodeArgs;
 	
 	addop : process(x, y)
 	begin
