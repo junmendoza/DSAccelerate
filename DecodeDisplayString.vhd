@@ -28,11 +28,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 -- any Xilinx primitives in this code.
 --library UNISIM;
 --use UNISIM.VComponents.all;
+use work.Definitions.all;
 
 entity DecodeDisplayString is
 	Port( 
 			reset : in STD_LOGIC;
-			exec_done : in STD_LOGIC;
+			exec_state : in EXECUTION_STATE;
 			var_index : in STD_LOGIC_VECTOR (2 downto 0);
 			char_array : out STD_LOGIC_VECTOR (79 downto 0)
 		 );
@@ -53,7 +54,7 @@ architecture Behavioral of DecodeDisplayString is
 	
 begin
 
-	ProcDecodeString : process (exec_done, var_index)
+	ProcDecodeString : process (exec_state, var_index)
 	begin
 		ResetSync : if reset = '1' then
 			char_array(79 downto 72) <= "01101110";
@@ -67,7 +68,7 @@ begin
 			char_array(15 downto 8)  <= "01101110";
 			char_array(7 downto 0)   <= "01101110";
 		elsif reset = '0' then
-			IsExecutionComplete : if exec_done = '1' then
+			IsExecutionComplete : if exec_state = EXEC_STATE_DONE then
 				GetDisplayString : if var_index = "000" then
 					char_array(79 downto 72) <= "01001010";
 					char_array(71 downto 64) <= "01110101";

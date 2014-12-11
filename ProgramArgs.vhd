@@ -29,6 +29,8 @@ use IEEE.NUMERIC_STD.ALL;
 library UNISIM;
 use UNISIM.VComponents.all;
 
+use work.Definitions.all;
+
 ------------------------
 -- a = x
 -- b = y
@@ -64,7 +66,7 @@ entity ProgramArgs is
 end ProgramArgs;
 
 architecture Behavioral of ProgramArgs is
-	
+
 	component EmitLCD is
 		Port( 
 				clock 		: in STD_LOGIC;
@@ -80,7 +82,7 @@ architecture Behavioral of ProgramArgs is
 	component DecodeDisplayString is
 		Port( 
 				reset : in  STD_LOGIC;
-				exec_done : in STD_LOGIC;
+				exec_state : in EXECUTION_STATE;
 				var_index : in  STD_LOGIC_VECTOR (2 downto 0);
 				char_array : out  STD_LOGIC_VECTOR (79 downto 0)
 			 );
@@ -110,7 +112,7 @@ architecture Behavioral of ProgramArgs is
 	signal char_array: STD_LOGIC_VECTOR (79 downto 0) := (others => '0');
 	
 	-- Increment counter for every execution unit completed
-	signal executionDone : STD_LOGIC := '0';
+	signal execState : EXECUTION_STATE := EXEC_STATE_RUNNING;
 	signal clockCycles : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
 	constant maxCycles : integer:= 5;
 	
@@ -119,7 +121,7 @@ begin
 	DisplayString : DecodeDisplayString port map
 	(
 		reset 		=> reset,
-		exec_done	=> executionDone,
+		exec_state	=> execState,
 		var_index 	=> var_index,	
 		char_array 	=> char_array 	
 	);
@@ -143,17 +145,7 @@ begin
 		result => c
 	);
 	
-	SetInputArgsBits : process(reset, sw1, sw2, sw3)
-	begin
-		ResetSync : if reset = '1' then
-			input_set <= "000";
-		elsif reset = '0' then
-			input_set(2) <= sw3;
-			input_set(1) <= sw2;
-			input_set(0) <= sw1;
-		end if ResetSync;
-	end process SetInputArgsBits;
-
+	
 	DecodeArgs : process(reset, input_set)
 	begin
 		ResetSync : if reset = '0' then
@@ -205,7 +197,28 @@ begin
 		end if ResetSync;
 	end process assign_c;
 	
+
 	
+	-- This process sets the input from sw3-sw1 and 
+	-- demultiplexes them to the input args or output preview
+	SetInputArgsBits : process(reset, sw1, sw2, sw3)
+	begin
+		ResetSync : if reset = '1' then
+			input_set <= "000";
+		elsif reset = '0' then
+			if execState = EXEC_STATE_RUNNING then
+				input_set(2) <= sw3;
+				input_set(1) <= sw2;
+				input_set(0) <= sw1;
+			elsif execState = EXEC_STATE_DONE then
+				var_index(2) <= sw3;
+				var_index(1) <= sw2;
+				var_index(0) <= sw1;
+			end if;
+		end if ResetSync;
+	end process SetInputArgsBits;
+
+	-- Increments a clock cycle counter 
 	ProcIncrementExecutionUnit : process(clock, reset)
 		variable clkcyc : integer;
 		variable cnt : integer;
@@ -213,7 +226,7 @@ begin
 		ResetSync : if reset = '1' then
 			clockCycles <= "00000000";
 		elsif reset = '0' then
-			if executionDone = '0' then
+			if execState = EXEC_STATE_RUNNING then
 				ClockSync : if rising_edge(clock) then
 					clkcyc := to_integer(signed(clockCycles));
 					cnt := clkcyc + 1;
@@ -223,15 +236,18 @@ begin
 		end if ResetSync;
 	end process ProcIncrementExecutionUnit;
 
+
+	-- Determine if the program has ended by taking the number of clock cycles elapsed
+	-- and comparing it to the estimated number of clock cycles the program should take to execute
 	EndProgram : process(clockCycles)
 		variable clkcyc : integer;
 	begin
 		ResetSync : if reset = '1' then
-			executionDone <= '0';
+			execState <= EXEC_STATE_RUNNING;
 		elsif reset = '0' then
 			clkcyc := to_integer(signed(clockCycles));
 			if clkcyc = maxCycles then
-				executionDone <= '1';
+				execState <= EXEC_STATE_DONE;
 			end if;
 		end if ResetSync;
 	end process EndProgram;

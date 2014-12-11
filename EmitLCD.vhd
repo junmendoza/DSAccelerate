@@ -42,53 +42,53 @@ architecture Behavioral of EmitLCD is
 --------------------------------
 -- Implemented constants
 --------------------------------
-constant POWERON_CLKWAIT_1 				: integer := 800000;
-constant POWERON_CLKWAIT_2 				: integer := 30;
-constant POWERON_CLKWAIT_3 				: integer := 300000;
-constant POWERON_CLKWAIT_4 				: integer := 30;
-constant POWERON_CLKWAIT_5 				: integer := 7000;
-constant POWERON_CLKWAIT_6 				: integer := 30;
-constant POWERON_CLKWAIT_7 				: integer := 4000;
-constant POWERON_CLKWAIT_8 				: integer := 30;
-constant POWERON_CLKWAIT_9 				: integer := 4000;
-
-constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 3000;
-constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 3000;
-constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 3000;
-constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 100000;
-
-constant WRITE_CLKWAIT 						: integer := 3000;
-
-constant WRITE_SETUP_HOLD 					: integer := 10;
-constant WRITE_HOLD 							: integer := 20;
-constant WRITE_NEXT_HOLD 					: integer := 10;
-constant TRANSMIT_4BIT_HOLD 				: integer := 5;
+--constant POWERON_CLKWAIT_1 				: integer := 800000;
+--constant POWERON_CLKWAIT_2 				: integer := 30;
+--constant POWERON_CLKWAIT_3 				: integer := 300000;
+--constant POWERON_CLKWAIT_4 				: integer := 30;
+--constant POWERON_CLKWAIT_5 				: integer := 7000;
+--constant POWERON_CLKWAIT_6 				: integer := 30;
+--constant POWERON_CLKWAIT_7 				: integer := 4000;
+--constant POWERON_CLKWAIT_8 				: integer := 30;
+--constant POWERON_CLKWAIT_9 				: integer := 4000;
+--
+--constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 3000;
+--constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 3000;
+--constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 3000;
+--constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 100000;
+--
+--constant WRITE_CLKWAIT 						: integer := 3000;
+--
+--constant WRITE_SETUP_HOLD 					: integer := 10;
+--constant WRITE_HOLD 							: integer := 20;
+--constant WRITE_NEXT_HOLD 					: integer := 10;
+--constant TRANSMIT_4BIT_HOLD 				: integer := 5;
 
 --------------------------------
 -- Testbench constants
 -- Use these on simulation
 --------------------------------
---constant POWERON_CLKWAIT_1 				: integer := 2;
---constant POWERON_CLKWAIT_2 				: integer := 2;
---constant POWERON_CLKWAIT_3 				: integer := 2;
---constant POWERON_CLKWAIT_4 				: integer := 2;
---constant POWERON_CLKWAIT_5 				: integer := 2;
---constant POWERON_CLKWAIT_6 				: integer := 2;
---constant POWERON_CLKWAIT_7 				: integer := 2;
---constant POWERON_CLKWAIT_8 				: integer := 2;
---constant POWERON_CLKWAIT_9 				: integer := 2;
---
---constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 2;
---constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 2;
---constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 2;
---constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 2;
---
---constant WRITE_CLKWAIT 						: integer := 2;
---
---constant WRITE_SETUP_HOLD 					: integer := 2;
---constant WRITE_HOLD 							: integer := 2;
---constant WRITE_NEXT_HOLD 					: integer := 2;
---constant TRANSMIT_4BIT_HOLD 				: integer := 2;
+constant POWERON_CLKWAIT_1 				: integer := 2;
+constant POWERON_CLKWAIT_2 				: integer := 2;
+constant POWERON_CLKWAIT_3 				: integer := 2;
+constant POWERON_CLKWAIT_4 				: integer := 2;
+constant POWERON_CLKWAIT_5 				: integer := 2;
+constant POWERON_CLKWAIT_6 				: integer := 2;
+constant POWERON_CLKWAIT_7 				: integer := 2;
+constant POWERON_CLKWAIT_8 				: integer := 2;
+constant POWERON_CLKWAIT_9 				: integer := 2;
+
+constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 2;
+constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 2;
+constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 2;
+constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 2;
+
+constant WRITE_CLKWAIT 						: integer := 2;
+
+constant WRITE_SETUP_HOLD 					: integer := 2;
+constant WRITE_HOLD 							: integer := 2;
+constant WRITE_NEXT_HOLD 					: integer := 2;
+constant TRANSMIT_4BIT_HOLD 				: integer := 2;
 
 
 --------------------------------
