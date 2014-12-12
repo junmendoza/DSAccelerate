@@ -46,6 +46,7 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
+			execute 	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -64,6 +65,7 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
    signal sw1 : std_logic := '0';
    signal sw2 : std_logic := '0';
    signal sw3 : std_logic := '0';
+   signal execute : std_logic := '0';
 
  	--Outputs
    signal a_out 	: std_logic_vector(31 downto 0);
@@ -76,17 +78,18 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 	signal LED 		: STD_LOGIC_VECTOR(7 downto 0);
 
    -- Clock period definitions
-	constant clkCycles : integer := 100;
+	constant clkCycles : integer := 1000;
  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: ProgramArgs PORT MAP (
           clock 	=> clock,
-          reset 		=> reset,
+          reset 	=> reset,
           sw1		=> sw1,
           sw2 		=> sw2,
 			 sw3		=> sw3,
+			 execute	=> execute,
           a_out 	=> a_out,
           b_out 	=> b_out,
           c_out 	=> c_out,
@@ -117,6 +120,7 @@ BEGIN
 		-- Sequence 1
 		-- Execute with args sw3-sw1 = 000 
 		-----------------------------------
+		execute <= '1';
 		clock <= '0';
 		wait for 5 ns;
 		
@@ -125,6 +129,14 @@ BEGIN
 		sw3 <= '0';
 		sw2 <= '0';
 		sw1 <= '0';
+		wait for 5 ns;
+		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Reset execute flag
+		clock <= '1';
+		execute <= '0';
 		wait for 5 ns;
 		
 		-- Hold
@@ -137,7 +149,7 @@ BEGIN
 		clock <= '0';
 		wait for 5 ns;
 		
-		-- Set input
+		-- Set next preview
 		clock <= '1';
 		sw3 <= '0';
 		sw2 <= '0';
@@ -160,6 +172,7 @@ BEGIN
 		-- Sequence 2
 		-- Execute with args sw3-sw1 = 001 
 		-----------------------------------
+		execute <= '1';
 		clock <= '0';
 		wait for 5 ns;
 		
@@ -171,6 +184,11 @@ BEGIN
 		wait for 5 ns;
 		
 		clock <= '0';
+		wait for 5 ns;
+		
+		-- Reset execute flag
+		clock <= '1';
+		execute <= '0';
 		wait for 5 ns;
 		
 		-- Hold

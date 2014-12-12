@@ -13,6 +13,7 @@ use IEEE.STD_LOGIC_1164.all;
 package Definitions is
 
 	type EXECUTION_STATE is(	
+				EXEC_STATE_READY,
 				EXEC_STATE_RUNNING,
 				EXEC_STATE_DONE
 			 );	

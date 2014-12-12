@@ -54,6 +54,7 @@ entity ProgramArgs is
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
+			execute	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -112,7 +113,8 @@ architecture Behavioral of ProgramArgs is
 	signal char_array: STD_LOGIC_VECTOR (79 downto 0) := (others => '0');
 	
 	-- Increment counter for every execution unit completed
-	signal execState : EXECUTION_STATE := EXEC_STATE_RUNNING;
+	signal execState : EXECUTION_STATE := EXEC_STATE_READY;
+	signal executeDone : STD_LOGIC := '0';
 	signal clockCycles : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
 	constant maxCycles : integer:= 5;
 	
@@ -137,6 +139,9 @@ begin
 		LCD_RW 		=> LCD_RW
 	);
 
+	-------------------------------------
+	-- Execution unit instances
+	-------------------------------------
 	Add0 : ALU_Add port map
 	(
 		reset => reset,
@@ -146,36 +151,52 @@ begin
 	);
 	
 	
-	DecodeArgs : process(reset, input_set)
+	-------------------------------------
+	-- Input arg selector
+	-------------------------------------
+	DecodeArgs : process(execState, input_set)
 	begin
 		ResetSync : if reset = '0' then
-			GetInputSet : if input_set = "000" then
-				x <= X"00000001";
-				y <= X"00000002";
-			elsif input_set = "001" then
-				x <= X"00000003";
-				y <= X"00000004";
-			elsif input_set = "010" then
-				x <= X"00000005";
-				y <= X"00000006";
-			elsif input_set = "011" then
-				x <= X"00000007";
-				y <= X"00000008";
-			else
-				x <= X"00000009";
-				y <= X"0000000A";
-			end if GetInputSet;
+			if execState = EXEC_STATE_READY then
+				GetInputSet : if input_set = "000" then
+					x <= X"00000001";
+					y <= X"00000002";
+				elsif input_set = "001" then
+					x <= X"00000003";
+					y <= X"00000004";
+				elsif input_set = "010" then
+					x <= X"00000005";
+					y <= X"00000006";
+				elsif input_set = "011" then
+					x <= X"00000007";
+					y <= X"00000008";
+				else
+					x <= X"00000009";
+					y <= X"0000000A";
+				end if GetInputSet;
+			end if;
 		end if ResetSync;
 	end process DecodeArgs;
 	
-	addop : process(x, y)
+	
+	
+	-------------------------------------
+	-- Entry point
+	-------------------------------------
+	addop : process(execState)
 	begin
 		ResetSync : if reset = '0' then
-			a <= x;
-			b <= y;
+			if execState = EXEC_STATE_RUNNING then
+				a <= x;
+				b <= y;
+			end if; 
 		end if ResetSync;
 	end process addop;
 	
+	
+	-------------------------------------
+	-- Execution processes
+	-------------------------------------
 	assign_a : process(a)
 	begin
 		ResetSync : if reset = '0' then
@@ -197,7 +218,6 @@ begin
 		end if ResetSync;
 	end process assign_c;
 	
-
 	
 	-- This process sets the input from sw3-sw1 and 
 	-- demultiplexes them to the input args or output preview
@@ -217,41 +237,44 @@ begin
 			end if;
 		end if ResetSync;
 	end process SetInputArgsBits;
-
-	-- Increments a clock cycle counter 
-	ProcIncrementExecutionUnit : process(clock, reset)
-		variable clkcyc : integer;
+	
+	-- Determine if the program has ended by taking the number of clock cycles elapsed
+	-- and comparing it to the estimated number of clock cycles the program should take to execute
+	SetExecutionState : process(clock)
 		variable cnt : integer;
+		variable clkcyc : integer;
 	begin
 		ResetSync : if reset = '1' then
 			clockCycles <= "00000000";
+			executeDone <= '0';
 		elsif reset = '0' then
-			if execState = EXEC_STATE_RUNNING then
-				ClockSync : if rising_edge(clock) then
-					clkcyc := to_integer(signed(clockCycles));
-					cnt := clkcyc + 1;
-					clockCycles <= std_logic_vector(to_signed(cnt, 8));
-				end if ClockSync;
+			if execState = EXEC_STATE_RUNNING then 
+				clkcyc := to_integer(signed(clockCycles));
+				cnt := clkcyc + 1;
+				if clkcyc = maxCycles then
+					executeDone <= '1';
+				end if;
 			end if;
 		end if ResetSync;
-	end process ProcIncrementExecutionUnit;
-
-
-	-- Determine if the program has ended by taking the number of clock cycles elapsed
-	-- and comparing it to the estimated number of clock cycles the program should take to execute
-	EndProgram : process(clockCycles)
-		variable clkcyc : integer;
+	end process SetExecutionState;
+	
+	ExecutionStateTransition : process(reset, execute, executeDone)
 	begin
 		ResetSync : if reset = '1' then
-			execState <= EXEC_STATE_RUNNING;
-		elsif reset = '0' then
-			clkcyc := to_integer(signed(clockCycles));
-			if clkcyc = maxCycles then
-				execState <= EXEC_STATE_DONE;
+			execState <= EXEC_STATE_READY;
+		elsif reset = '1' then
+			if execState = EXEC_STATE_READY then
+				if execute = '1' then
+					execState <= EXEC_STATE_RUNNING;
+				end if;
+			elsif execState = EXEC_STATE_RUNNING then
+				if executeDone = '1' then
+					execState <= EXEC_STATE_DONE;
+				end if;
+			elsif execState = EXEC_STATE_DONE then
 			end if;
 		end if ResetSync;
-	end process EndProgram;
-	
+	end process ExecutionStateTransition;
 
 end Behavioral;
 
