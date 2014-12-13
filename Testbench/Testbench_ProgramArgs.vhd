@@ -112,9 +112,14 @@ BEGIN
 		reset <= '1';
 		wait for 5 ns;
 		
+		-- Set input
 		clock <= '1';
 		reset <= '0';
+		sw3 <= '0';
+		sw2 <= '0';
+		sw1 <= '0';
 		wait for 5 ns;
+		
 		
 		-----------------------------------
 		-- Sequence 1
@@ -122,13 +127,6 @@ BEGIN
 		-----------------------------------
 		execute <= '1';
 		clock <= '0';
-		wait for 5 ns;
-		
-		-- Set input
-		clock <= '1';
-		sw3 <= '0';
-		sw2 <= '0';
-		sw1 <= '0';
 		wait for 5 ns;
 		
 		clock <= '0';

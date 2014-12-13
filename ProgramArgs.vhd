@@ -4,7 +4,6 @@
 -- 
 -- Create Date:    12:11:12 12/09/2014 
 -- Design Name: 
--- Module Name:    ProgramArgs - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -15,6 +14,7 @@
 -- Revision: 
 -- Revision 0.01 - File Created
 -- Additional Comments: 
+-- Module Name:    ProgramArgs - Behavioral 
 --
 ----------------------------------------------------------------------------------
 library IEEE;
@@ -115,8 +115,8 @@ architecture Behavioral of ProgramArgs is
 	-- Increment counter for every execution unit completed
 	signal execState : EXECUTION_STATE := EXEC_STATE_READY;
 	signal executeDone : STD_LOGIC := '0';
-	signal clockCycles : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-	constant maxCycles : integer:= 5;
+	constant maxCycles : integer := 5;
+	signal clockCycles : integer := 0;
 	
 begin
 
@@ -152,12 +152,13 @@ begin
 	
 	
 	-------------------------------------
-	-- Input arg selector
+	-- Entry point
+	-- Triggers the program execution and sets the input args
 	-------------------------------------
-	DecodeArgs : process(execState, input_set)
+	DecodeArgs : process(execState)
 	begin
 		ResetSync : if reset = '0' then
-			if execState = EXEC_STATE_READY then
+			if execState = EXEC_STATE_RUNNING then
 				GetInputSet : if input_set = "000" then
 					x <= X"00000001";
 					y <= X"00000002";
@@ -179,17 +180,11 @@ begin
 	end process DecodeArgs;
 	
 	
-	
-	-------------------------------------
-	-- Entry point
-	-------------------------------------
-	addop : process(execState)
+	addop : process(x, y)
 	begin
 		ResetSync : if reset = '0' then
-			if execState = EXEC_STATE_RUNNING then
-				a <= x;
-				b <= y;
-			end if; 
+			a <= x;
+			b <= y;
 		end if ResetSync;
 	end process addop;
 	
@@ -226,7 +221,7 @@ begin
 		ResetSync : if reset = '1' then
 			input_set <= "000";
 		elsif reset = '0' then
-			if execState = EXEC_STATE_RUNNING then
+			if execState = EXEC_STATE_READY then
 				input_set(2) <= sw3;
 				input_set(1) <= sw2;
 				input_set(0) <= sw1;
@@ -245,13 +240,12 @@ begin
 		variable clkcyc : integer;
 	begin
 		ResetSync : if reset = '1' then
-			clockCycles <= "00000000";
+			clockCycles <= 0;
 			executeDone <= '0';
 		elsif reset = '0' then
 			if execState = EXEC_STATE_RUNNING then 
-				clkcyc := to_integer(signed(clockCycles));
-				cnt := clkcyc + 1;
-				if clkcyc = maxCycles then
+				clockCycles <= clockCycles + 1;
+				if clockCycles = maxCycles then
 					executeDone <= '1';
 				end if;
 			end if;
@@ -262,7 +256,7 @@ begin
 	begin
 		ResetSync : if reset = '1' then
 			execState <= EXEC_STATE_READY;
-		elsif reset = '1' then
+		elsif reset = '0' then
 			if execState = EXEC_STATE_READY then
 				if execute = '1' then
 					execState <= EXEC_STATE_RUNNING;
