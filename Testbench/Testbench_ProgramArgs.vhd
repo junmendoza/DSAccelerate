@@ -120,13 +120,15 @@ BEGIN
 		sw1 <= '0';
 		wait for 5 ns;
 		
+		clock <= '0';
+		wait for 5 ns;
 		
 		-----------------------------------
 		-- Sequence 1
 		-- Execute with args sw3-sw1 = 000 
 		-----------------------------------
 		execute <= '1';
-		clock <= '0';
+		clock <= '1';
 		wait for 5 ns;
 		
 		clock <= '0';
@@ -143,7 +145,6 @@ BEGIN
 			wait for 5 ns;
 		end loop;
 		
-		--  Preview next var		
 		clock <= '0';
 		wait for 5 ns;
 		
@@ -154,6 +155,12 @@ BEGIN
 		sw1 <= '1';
 		wait for 5 ns;
 		
+		-- Hold
+		for i in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
+		
 		
 		-----------------------------------
 		-- Initialize and reset
@@ -162,8 +169,15 @@ BEGIN
 		reset <= '1';
 		wait for 5 ns;
 		
+		-- Set input
 		clock <= '1';
 		reset <= '0';
+		sw3 <= '0';
+		sw2 <= '1';
+		sw1 <= '0';
+		wait for 5 ns;
+		
+		clock <= '0';
 		wait for 5 ns;
 		
 		-----------------------------------
@@ -171,14 +185,7 @@ BEGIN
 		-- Execute with args sw3-sw1 = 001 
 		-----------------------------------
 		execute <= '1';
-		clock <= '0';
-		wait for 5 ns;
-		
-		-- Set input
 		clock <= '1';
-		sw3 <= '0';
-		sw2 <= '0';
-		sw1 <= '1';
 		wait for 5 ns;
 		
 		clock <= '0';
@@ -194,17 +201,22 @@ BEGIN
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
-		
-		-- Preview next var		
+			
 		clock <= '0';
 		wait for 5 ns;
 		
-		-- Set input
+		-- Set next preview
 		clock <= '1';
 		sw3 <= '0';
 		sw2 <= '0';
 		sw1 <= '1';
 		wait for 5 ns;
+		
+		-- Hold
+		for i in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
 		
       wait;
 		
