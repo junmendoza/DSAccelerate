@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   12:47:57 12/09/2014
+-- Create Date:   18:26:37 12/17/2014
 -- Design Name:   
--- Module Name:   D:/jun/Research/git/DSAccelerate/Testbench/Testbench_ProgramArgs.vhd
+-- Module Name:   D:/jun/Research/git/DSAccelerate/Testbench/Testbench_ProgramArgsMultipleRun.vhd
 -- Project Name:  SynthesizedProgram
 -- Target Device:  
 -- Tool versions:  
@@ -32,12 +32,12 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY Testbench_ProgramArgs IS
-END Testbench_ProgramArgs;
+ENTITY Testbench_ProgramArgsMultipleRun IS
+END Testbench_ProgramArgsMultipleRun;
  
-ARCHITECTURE behavior OF Testbench_ProgramArgs IS 
+ARCHITECTURE behavior OF Testbench_ProgramArgsMultipleRun IS 
  
-    -- Component Declaration for the Unit Under Test (UUT)
+   -- Component Declaration for the Unit Under Test (UUT)
  
     COMPONENT ProgramArgs
     PORT(
@@ -167,18 +167,65 @@ BEGIN
 			wait for 5 ns;
 		end loop;
 		
+		
+		-----------------------------------
+		-- Initialize and reset
+		-----------------------------------
+		clock <= '0';
+		reset <= '1';
+		wait for 5 ns;
+		
+		-- Hold
+		for d in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
+		
+		-- Set input
+		clock <= '1';
+		reset <= '0';
+		sw3 <= '0';
+		sw2 <= '1';
+		sw1 <= '0';
+		wait for 5 ns;
+		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-----------------------------------
+		-- Sequence 2
+		-- Execute with args sw3-sw1 = 001 
+		-----------------------------------
+		execute <= '1';
+		clock <= '1';
+		wait for 5 ns;
+		
+		clock <= '0';
+		wait for 5 ns;
+		
+		-- Reset execute flag
+		clock <= '1';
+		execute <= '0';
+		wait for 5 ns;
+		
+		-- Hold
+		for e in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
+			
 		clock <= '0';
 		wait for 5 ns;
 		
 		-- Set next preview
 		clock <= '1';
 		sw3 <= '0';
-		sw2 <= '1';
-		sw1 <= '0';
+		sw2 <= '0';
+		sw1 <= '1';
 		wait for 5 ns;
 		
 		-- Hold
-		for c in 1 to clkCycles loop
+		for f in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
