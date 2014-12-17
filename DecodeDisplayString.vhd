@@ -58,13 +58,13 @@ begin
 	begin
 		ResetSync : if reset = '1' then
 			char_array(79 downto 72) <= "01000001";
-			char_array(71 downto 64) <= "01000001";
+			char_array(71 downto 64) <= "01000010";
 			char_array(63 downto 56) <= "01000001";
-			char_array(55 downto 48) <= "01000001";
+			char_array(55 downto 48) <= "01000010";
 			char_array(47 downto 40) <= "01000001";
-			char_array(39 downto 32) <= "01000001";
+			char_array(39 downto 32) <= "01000010";
 			char_array(31 downto 24) <= "01000001";
-			char_array(23 downto 16) <= "01000001";
+			char_array(23 downto 16) <= "01000010";
 			char_array(15 downto 8)  <= "01000001";
 			char_array(7 downto 0)   <= "01000001";
 		elsif reset = '0' then

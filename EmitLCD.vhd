@@ -124,6 +124,7 @@ type LCD_WRITE_FLAG is(
 							 
 	 
 type LCD_TRANSMIT_STATE is(
+									LCD_TRANSMIT_STATE_READY,
 									LCD_TRANSMIT_STATE_SELECT_COMMAND,
 									LCD_TRANSMIT_STATE_EXECUTE_COMMAND,
 									LCD_TRANSMIT_STATE_DONE
@@ -177,18 +178,25 @@ signal initLCDPowerOn 		: LCD_POWERON;
 signal transmit4BitState	: LCD_TRANSMIT_4BIT;
 signal transmitNibbleState	: LCD_TRANSMIT_NIBBLE;
 
+signal writeDone : STD_LOGIC := '0';
+
 begin
 
 
 	-- Process to handle incoming data to emit
-	process(char_array)
+	process(char_array, writeDone)
 	begin
 		ResetState : if reset = '1' then
 			lcdWriteflag <= LCD_WRITE_FLAG_OFF;
 		elsif reset = '0' then
-			lcdWriteflag <= LCD_WRITE_FLAG_ON;
+			if writeDone = '1' then
+				lcdWriteflag <= LCD_WRITE_FLAG_OFF;
+			elsif writeDone = '0' and lcdTransmitState = LCD_TRANSMIT_STATE_SELECT_COMMAND then
+				lcdWriteflag <= LCD_WRITE_FLAG_ON;
+			end if;
 		end if ResetState;
 	end process;
+	
 	
 	-- Process to handle transmission of 8-bit data to the LCD bus
 	process(clock, reset)
@@ -198,6 +206,7 @@ begin
 	begin
 		ResetState : if reset = '1' then
 			clockCycles := 0;
+			lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
 			transmitNibbleState <= LCD_TRANSMIT_NIBBLE_SETUP;
 			transmit4BitState <= LCD_TRANSMIT_4BIT_UPPER;
 			LCD_RW <= '0';
@@ -207,95 +216,101 @@ begin
 			nextCmdWait := 0;
 		elsif reset = '0' then
 			ClockSync : if rising_edge(clock) then
-			
-				IfThereIsDataToEmit : if lcdWriteflag = LCD_WRITE_FLAG_ON then
-					
-					IsReadyForWrite : if lcdEnableState = LCD_DISABLED then
-						-- Power on sequence
-						IsPoweredOn : if initLCDPowerOn = LCD_POWERON_1 then
-							if clockCycles > POWERON_CLKWAIT_1 then	
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_2;
-							end if;
-						elsif initLCDPowerOn = LCD_POWERON_2 then
-							if clockCycles < POWERON_CLKWAIT_2 then
-								LCDDataBus(7 downto 4) <= "0011";	
-								LCD_E <= '1';			-- Set pulse high
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_3;
-							end if;
-								
-						elsif initLCDPowerOn = LCD_POWERON_3 then
-							if clockCycles < POWERON_CLKWAIT_3 then
-								LCDDataBus(7 downto 4) <= "0000";	
-								LCD_E <= '0';			-- Set pulse low
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_4;
-							end if;
-								
-						elsif initLCDPowerOn = LCD_POWERON_4 then
-							if clockCycles < POWERON_CLKWAIT_4 then
-								LCDDataBus(7 downto 4) <= "0011";
-								LCD_E <= '1';			-- Set pulse high
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_5;
-							end if;
-						elsif initLCDPowerOn = LCD_POWERON_5 then
-							if clockCycles < POWERON_CLKWAIT_5 then
-								LCDDataBus(7 downto 4) <= "0000";	
-								LCD_E <= '0';			-- Set pulse low
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_6;
-							end if;
-						elsif initLCDPowerOn = LCD_POWERON_6 then
-							if clockCycles < POWERON_CLKWAIT_6 then
-								LCDDataBus(7 downto 4) <= "0011";
-								LCD_E <= '1';			-- Set pulse high
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_7;
-							end if;
+				IsReadyForWrite : if lcdEnableState = LCD_DISABLED then
+					-- Power on sequence
+					IsPoweredOn : if initLCDPowerOn = LCD_POWERON_1 then
+						if clockCycles > POWERON_CLKWAIT_1 then	
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_2;
+						end if;
+					elsif initLCDPowerOn = LCD_POWERON_2 then
+						if clockCycles < POWERON_CLKWAIT_2 then
+							LCDDataBus(7 downto 4) <= "0011";	
+							LCD_E <= '1';			-- Set pulse high
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_3;
+						end if;
 							
-						elsif initLCDPowerOn = LCD_POWERON_7 then
-							if clockCycles < POWERON_CLKWAIT_7 then
-								LCDDataBus(7 downto 4) <= "0000";	
-								LCD_E <= '0';			-- Set pulse low
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_8;
-							end if;
+					elsif initLCDPowerOn = LCD_POWERON_3 then
+						if clockCycles < POWERON_CLKWAIT_3 then
+							LCDDataBus(7 downto 4) <= "0000";	
+							LCD_E <= '0';			-- Set pulse low
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_4;
+						end if;
 							
-						elsif initLCDPowerOn = LCD_POWERON_8 then
-							if clockCycles < POWERON_CLKWAIT_8 then
-								LCDDataBus(7 downto 4) <= "0010";
-								LCD_E <= '1';			-- Set pulse high
-							else
-								clockCycles := 0;
-								initLCDPowerOn <= LCD_POWERON_9;
-							end if;
-							
-						elsif initLCDPowerOn = LCD_POWERON_9 then
-							if clockCycles < POWERON_CLKWAIT_9 then
-								LCDDataBus(7 downto 4) <= "0000";	
-								LCD_E <= '0';			-- Set pulse low
-							else
-								clockCycles := 0;
-								lcdEnableState <= LCD_ENABLED;
-								lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
-								lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
-							end if;
-						end if IsPoweredOn;
-					
-					elsif lcdEnableState = LCD_ENABLED then
-					
-						TransmitState : if lcdTransmitState = LCD_TRANSMIT_STATE_SELECT_COMMAND then
+					elsif initLCDPowerOn = LCD_POWERON_4 then
+						if clockCycles < POWERON_CLKWAIT_4 then
+							LCDDataBus(7 downto 4) <= "0011";
+							LCD_E <= '1';			-- Set pulse high
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_5;
+						end if;
+					elsif initLCDPowerOn = LCD_POWERON_5 then
+						if clockCycles < POWERON_CLKWAIT_5 then
+							LCDDataBus(7 downto 4) <= "0000";	
+							LCD_E <= '0';			-- Set pulse low
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_6;
+						end if;
+					elsif initLCDPowerOn = LCD_POWERON_6 then
+						if clockCycles < POWERON_CLKWAIT_6 then
+							LCDDataBus(7 downto 4) <= "0011";
+							LCD_E <= '1';			-- Set pulse high
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_7;
+						end if;
 						
+					elsif initLCDPowerOn = LCD_POWERON_7 then
+						if clockCycles < POWERON_CLKWAIT_7 then
+							LCDDataBus(7 downto 4) <= "0000";	
+							LCD_E <= '0';			-- Set pulse low
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_8;
+						end if;
+						
+					elsif initLCDPowerOn = LCD_POWERON_8 then
+						if clockCycles < POWERON_CLKWAIT_8 then
+							LCDDataBus(7 downto 4) <= "0010";
+							LCD_E <= '1';			-- Set pulse high
+						else
+							clockCycles := 0;
+							initLCDPowerOn <= LCD_POWERON_9;
+						end if;
+						
+					elsif initLCDPowerOn = LCD_POWERON_9 then
+						if clockCycles < POWERON_CLKWAIT_9 then
+							LCDDataBus(7 downto 4) <= "0000";	
+							LCD_E <= '0';			-- Set pulse low
+						else
+							clockCycles := 0;
+							lcdEnableState <= LCD_ENABLED;
+							lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
+							lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
+						end if;
+					end if IsPoweredOn;
+				elsif lcdEnableState = LCD_ENABLED then
+				
+					IfThereIsDataToEmit : if lcdWriteflag = LCD_WRITE_FLAG_OFF then
+						if lcdTransmitState = LCD_TRANSMIT_STATE_DONE then
+							writeDone <= '0';
+							lcdTransmitState <= LCD_TRANSMIT_STATE_READY;
+						elsif lcdTransmitState = LCD_TRANSMIT_STATE_READY then
+							lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
+							lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
+						end if;
+						
+					elsif lcdWriteflag = LCD_WRITE_FLAG_ON then
+							
+						TransmitState : if lcdTransmitState = LCD_TRANSMIT_STATE_SELECT_COMMAND then
 							lcdTransmitState <= LCD_TRANSMIT_STATE_EXECUTE_COMMAND;
-
+							
 							WriteState : if lcdWriteState = LCD_CONFIG_FUNCTION_SET then
 								CmdByte <= kSetupFunctionSet;
 								LCD_RS_Val <= '0';
@@ -348,6 +363,7 @@ begin
 								lcdWriteState <= WRITE_DONE;
 							elsif lcdWriteState = WRITE_DONE then
 								lcdTransmitState <= LCD_TRANSMIT_STATE_DONE;
+								writeDone <= '1';
 							end if WriteState;
 							
 						elsif lcdTransmitState = LCD_TRANSMIT_STATE_EXECUTE_COMMAND then
@@ -419,9 +435,9 @@ begin
 								end if;
 							end if;
 						end if TransmitState;
-					end if IsReadyForWrite;
-					clockCycles := clockCycles + 1;
-				end if IfThereIsDataToEmit;	
+					end if IfThereIsDataToEmit;	
+				end if IsReadyForWrite;
+				clockCycles := clockCycles + 1;
 			end if ClockSync;
 		end if ResetState;
 	end process;

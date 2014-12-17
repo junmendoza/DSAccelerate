@@ -112,6 +112,12 @@ BEGIN
 		reset <= '1';
 		wait for 5 ns;
 		
+		-- Hold
+		for a in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
+		
 		-- Set input
 		clock <= '1';
 		reset <= '0';
@@ -124,7 +130,7 @@ BEGIN
 		wait for 5 ns;
 		
 		-----------------------------------
-		-- Sequence 1
+		-- Sequence 1 
 		-- Execute with args sw3-sw1 = 000 
 		-----------------------------------
 		execute <= '1';
@@ -140,7 +146,7 @@ BEGIN
 		wait for 5 ns;
 		
 		-- Hold
-		for i in 1 to clkCycles loop
+		for b in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
@@ -156,7 +162,7 @@ BEGIN
 		wait for 5 ns;
 		
 		-- Hold
-		for i in 1 to clkCycles loop
+		for c in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
@@ -168,6 +174,12 @@ BEGIN
 		clock <= '0';
 		reset <= '1';
 		wait for 5 ns;
+		
+		-- Hold
+		for d in 1 to clkCycles loop
+			clock <= not clock;
+			wait for 5 ns;
+		end loop;
 		
 		-- Set input
 		clock <= '1';
@@ -197,7 +209,7 @@ BEGIN
 		wait for 5 ns;
 		
 		-- Hold
-		for i in 1 to clkCycles loop
+		for e in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
@@ -213,7 +225,7 @@ BEGIN
 		wait for 5 ns;
 		
 		-- Hold
-		for i in 1 to clkCycles loop
+		for f in 1 to clkCycles loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
