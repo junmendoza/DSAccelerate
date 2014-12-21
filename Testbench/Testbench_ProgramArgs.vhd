@@ -46,7 +46,6 @@ ARCHITECTURE behavior OF Testbench_ProgramArgs IS
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
-			execute 	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -89,7 +88,6 @@ BEGIN
           sw1		=> sw1,
           sw2 		=> sw2,
 			 sw3		=> sw3,
-			 execute	=> execute,
           a_out 	=> a_out,
           b_out 	=> b_out,
           c_out 	=> c_out,
@@ -110,52 +108,32 @@ BEGIN
 		-----------------------------------
 		clock <= '0';
 		reset <= '1';
-		wait for 5 ns;
-		
-		-- Hold
-		for a in 1 to clkCycles loop
-			clock <= not clock;
-			wait for 5 ns;
-		end loop;
+		wait for 5 ns;		
 		
 		-- Set input
 		clock <= '1';
-		reset <= '0';
 		sw3 <= '0';
 		sw2 <= '0';
 		sw1 <= '0';
 		wait for 5 ns;
 		
-		clock <= '0';
-		wait for 5 ns;
-		
-		-----------------------------------
-		-- Sequence 1 
-		-- Execute with args sw3-sw1 = 000 
-		-----------------------------------
-		execute <= '1';
+		-----------------------
+		-- Begin execution
+		-----------------------
 		clock <= '1';
-		wait for 5 ns;
-		
-		clock <= '0';
-		wait for 5 ns;
-		
-		-- Reset execute flag
-		clock <= '1';
-		execute <= '0';
+		reset <= '0';
 		wait for 5 ns;
 		
 		-- Hold
-		for b in 1 to clkCycles loop
+		for b in 1 to 10000000 loop
 			clock <= not clock;
 			wait for 5 ns;
 		end loop;
 		
-		clock <= '0';
-		wait for 5 ns;
+		
+		-- Preview1 displays
 		
 		-- Set next preview
-		clock <= '1';
 		sw3 <= '0';
 		sw2 <= '0';
 		sw1 <= '1';
@@ -167,11 +145,8 @@ BEGIN
 			wait for 5 ns;
 		end loop;
 		
-		clock <= '0';
-		wait for 5 ns;
 		
 		-- Set next preview
-		clock <= '1';
 		sw3 <= '0';
 		sw2 <= '1';
 		sw1 <= '0';

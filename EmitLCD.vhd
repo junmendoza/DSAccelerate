@@ -42,53 +42,53 @@ architecture Behavioral of EmitLCD is
 --------------------------------
 -- Implemented constants
 --------------------------------
---constant POWERON_CLKWAIT_1 				: integer := 800000;
---constant POWERON_CLKWAIT_2 				: integer := 30;
---constant POWERON_CLKWAIT_3 				: integer := 300000;
---constant POWERON_CLKWAIT_4 				: integer := 30;
---constant POWERON_CLKWAIT_5 				: integer := 7000;
---constant POWERON_CLKWAIT_6 				: integer := 30;
---constant POWERON_CLKWAIT_7 				: integer := 4000;
---constant POWERON_CLKWAIT_8 				: integer := 30;
---constant POWERON_CLKWAIT_9 				: integer := 4000;
---
---constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 3000;
---constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 3000;
---constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 3000;
---constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 100000;
---
---constant WRITE_CLKWAIT 						: integer := 3000;
---
---constant WRITE_SETUP_HOLD 					: integer := 10;
---constant WRITE_HOLD 							: integer := 20;
---constant WRITE_NEXT_HOLD 					: integer := 10;
---constant TRANSMIT_4BIT_HOLD 				: integer := 5;
+constant POWERON_CLKWAIT_1 				: integer := 800000;
+constant POWERON_CLKWAIT_2 				: integer := 30;
+constant POWERON_CLKWAIT_3 				: integer := 300000;
+constant POWERON_CLKWAIT_4 				: integer := 30;
+constant POWERON_CLKWAIT_5 				: integer := 7000;
+constant POWERON_CLKWAIT_6 				: integer := 30;
+constant POWERON_CLKWAIT_7 				: integer := 4000;
+constant POWERON_CLKWAIT_8 				: integer := 30;
+constant POWERON_CLKWAIT_9 				: integer := 4000;
 
---------------------------------
+constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 3000;
+constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 3000;
+constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 3000;
+constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 100000;
+
+constant WRITE_CLKWAIT 						: integer := 3000;
+
+constant WRITE_SETUP_HOLD 					: integer := 10;
+constant WRITE_HOLD 							: integer := 20;
+constant WRITE_NEXT_HOLD 					: integer := 10;
+constant TRANSMIT_4BIT_HOLD 				: integer := 5;
+
+----------------------------
 -- Testbench constants
 -- Use these on simulation
 --------------------------------
-constant POWERON_CLKWAIT_1 				: integer := 2;
-constant POWERON_CLKWAIT_2 				: integer := 2;
-constant POWERON_CLKWAIT_3 				: integer := 2;
-constant POWERON_CLKWAIT_4 				: integer := 2;
-constant POWERON_CLKWAIT_5 				: integer := 2;
-constant POWERON_CLKWAIT_6 				: integer := 2;
-constant POWERON_CLKWAIT_7 				: integer := 2;
-constant POWERON_CLKWAIT_8 				: integer := 2;
-constant POWERON_CLKWAIT_9 				: integer := 2;
-
-constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 2;
-constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 2;
-constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 2;
-constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 2;
-
-constant WRITE_CLKWAIT 						: integer := 2;
-
-constant WRITE_SETUP_HOLD 					: integer := 2;
-constant WRITE_HOLD 							: integer := 2;
-constant WRITE_NEXT_HOLD 					: integer := 2;
-constant TRANSMIT_4BIT_HOLD 				: integer := 2;
+--constant POWERON_CLKWAIT_1 				: integer := 20;
+--constant POWERON_CLKWAIT_2 				: integer := 20;
+--constant POWERON_CLKWAIT_3 				: integer := 20;
+--constant POWERON_CLKWAIT_4 				: integer := 20;
+--constant POWERON_CLKWAIT_5 				: integer := 20;
+--constant POWERON_CLKWAIT_6 				: integer := 20;
+--constant POWERON_CLKWAIT_7 				: integer := 20;
+--constant POWERON_CLKWAIT_8 				: integer := 20;
+--constant POWERON_CLKWAIT_9 				: integer := 20;
+--
+--constant CONFIG_FUNCTIONSET_CLKWAIT 	: integer := 20;
+--constant CONFIG_ENTRYMODE_CLKWAIT 		: integer := 20;
+--constant CONFIG_DISPLAY_ONOFF_CLKWAIT 	: integer := 20;
+--constant CONFIG_CLEAR_DISPLAY_CLKWAIT 	: integer := 20;
+--
+--constant WRITE_CLKWAIT 						: integer := 20;
+--
+--constant WRITE_SETUP_HOLD 					: integer := 20;
+--constant WRITE_HOLD 							: integer := 20;
+--constant WRITE_NEXT_HOLD 					: integer := 20;
+--constant TRANSMIT_4BIT_HOLD 				: integer := 20;
 
 
 --------------------------------
@@ -216,98 +216,99 @@ begin
 			nextCmdWait := 0;
 		elsif reset = '0' then
 			ClockSync : if rising_edge(clock) then
-				IsReadyForWrite : if lcdEnableState = LCD_DISABLED then
-					-- Power on sequence
-					IsPoweredOn : if initLCDPowerOn = LCD_POWERON_1 then
-						if clockCycles > POWERON_CLKWAIT_1 then	
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_2;
-						end if;
-					elsif initLCDPowerOn = LCD_POWERON_2 then
-						if clockCycles < POWERON_CLKWAIT_2 then
-							LCDDataBus(7 downto 4) <= "0011";	
-							LCD_E <= '1';			-- Set pulse high
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_3;
-						end if;
+			
+				IfThereIsDataToEmit : if lcdWriteflag = LCD_WRITE_FLAG_OFF then
+					if lcdTransmitState = LCD_TRANSMIT_STATE_DONE then
+						writeDone <= '0';
+						lcdTransmitState <= LCD_TRANSMIT_STATE_READY;
+					elsif lcdTransmitState = LCD_TRANSMIT_STATE_READY then
+						--lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
+						lcdWriteState <= WRITE_INIT;
+						lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
+					end if;
+						
+				elsif lcdWriteflag = LCD_WRITE_FLAG_ON then
+					IsReadyForWrite : if lcdEnableState = LCD_DISABLED then
+						-- Power on sequence
+						IsPoweredOn : if initLCDPowerOn = LCD_POWERON_1 then
+							if clockCycles > POWERON_CLKWAIT_1 then	
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_2;
+							end if;
+						elsif initLCDPowerOn = LCD_POWERON_2 then
+							if clockCycles < POWERON_CLKWAIT_2 then
+								LCDDataBus(7 downto 4) <= "0011";	
+								LCD_E <= '1';			-- Set pulse high
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_3;
+							end if;
+								
+						elsif initLCDPowerOn = LCD_POWERON_3 then
+							if clockCycles < POWERON_CLKWAIT_3 then
+								LCDDataBus(7 downto 4) <= "0000";	
+								LCD_E <= '0';			-- Set pulse low
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_4;
+							end if;
+								
+						elsif initLCDPowerOn = LCD_POWERON_4 then
+							if clockCycles < POWERON_CLKWAIT_4 then
+								LCDDataBus(7 downto 4) <= "0011";
+								LCD_E <= '1';			-- Set pulse high
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_5;
+							end if;
+						elsif initLCDPowerOn = LCD_POWERON_5 then
+							if clockCycles < POWERON_CLKWAIT_5 then
+								LCDDataBus(7 downto 4) <= "0000";	
+								LCD_E <= '0';			-- Set pulse low
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_6;
+							end if;
+						elsif initLCDPowerOn = LCD_POWERON_6 then
+							if clockCycles < POWERON_CLKWAIT_6 then
+								LCDDataBus(7 downto 4) <= "0011";
+								LCD_E <= '1';			-- Set pulse high
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_7;
+							end if;
 							
-					elsif initLCDPowerOn = LCD_POWERON_3 then
-						if clockCycles < POWERON_CLKWAIT_3 then
-							LCDDataBus(7 downto 4) <= "0000";	
-							LCD_E <= '0';			-- Set pulse low
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_4;
-						end if;
+						elsif initLCDPowerOn = LCD_POWERON_7 then
+							if clockCycles < POWERON_CLKWAIT_7 then
+								LCDDataBus(7 downto 4) <= "0000";	
+								LCD_E <= '0';			-- Set pulse low
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_8;
+							end if;
 							
-					elsif initLCDPowerOn = LCD_POWERON_4 then
-						if clockCycles < POWERON_CLKWAIT_4 then
-							LCDDataBus(7 downto 4) <= "0011";
-							LCD_E <= '1';			-- Set pulse high
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_5;
-						end if;
-					elsif initLCDPowerOn = LCD_POWERON_5 then
-						if clockCycles < POWERON_CLKWAIT_5 then
-							LCDDataBus(7 downto 4) <= "0000";	
-							LCD_E <= '0';			-- Set pulse low
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_6;
-						end if;
-					elsif initLCDPowerOn = LCD_POWERON_6 then
-						if clockCycles < POWERON_CLKWAIT_6 then
-							LCDDataBus(7 downto 4) <= "0011";
-							LCD_E <= '1';			-- Set pulse high
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_7;
-						end if;
-						
-					elsif initLCDPowerOn = LCD_POWERON_7 then
-						if clockCycles < POWERON_CLKWAIT_7 then
-							LCDDataBus(7 downto 4) <= "0000";	
-							LCD_E <= '0';			-- Set pulse low
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_8;
-						end if;
-						
-					elsif initLCDPowerOn = LCD_POWERON_8 then
-						if clockCycles < POWERON_CLKWAIT_8 then
-							LCDDataBus(7 downto 4) <= "0010";
-							LCD_E <= '1';			-- Set pulse high
-						else
-							clockCycles := 0;
-							initLCDPowerOn <= LCD_POWERON_9;
-						end if;
-						
-					elsif initLCDPowerOn = LCD_POWERON_9 then
-						if clockCycles < POWERON_CLKWAIT_9 then
-							LCDDataBus(7 downto 4) <= "0000";	
-							LCD_E <= '0';			-- Set pulse low
-						else
-							clockCycles := 0;
-							lcdEnableState <= LCD_ENABLED;
-							lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
-							lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
-						end if;
-					end if IsPoweredOn;
-				elsif lcdEnableState = LCD_ENABLED then
-				
-					IfThereIsDataToEmit : if lcdWriteflag = LCD_WRITE_FLAG_OFF then
-						if lcdTransmitState = LCD_TRANSMIT_STATE_DONE then
-							writeDone <= '0';
-							lcdTransmitState <= LCD_TRANSMIT_STATE_READY;
-						elsif lcdTransmitState = LCD_TRANSMIT_STATE_READY then
-							lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
-							lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
-						end if;
-						
-					elsif lcdWriteflag = LCD_WRITE_FLAG_ON then
+						elsif initLCDPowerOn = LCD_POWERON_8 then
+							if clockCycles < POWERON_CLKWAIT_8 then
+								LCDDataBus(7 downto 4) <= "0010";
+								LCD_E <= '1';			-- Set pulse high
+							else
+								clockCycles := 0;
+								initLCDPowerOn <= LCD_POWERON_9;
+							end if;
 							
+						elsif initLCDPowerOn = LCD_POWERON_9 then
+							if clockCycles < POWERON_CLKWAIT_9 then
+								LCDDataBus(7 downto 4) <= "0000";	
+								LCD_E <= '0';			-- Set pulse low
+							else
+								clockCycles := 0;
+								lcdEnableState <= LCD_ENABLED;
+								lcdTransmitState <= LCD_TRANSMIT_STATE_SELECT_COMMAND;
+								lcdWriteState <= LCD_CONFIG_FUNCTION_SET;
+							end if;
+						end if IsPoweredOn;
+					elsif lcdEnableState = LCD_ENABLED then
+								
 						TransmitState : if lcdTransmitState = LCD_TRANSMIT_STATE_SELECT_COMMAND then
 							lcdTransmitState <= LCD_TRANSMIT_STATE_EXECUTE_COMMAND;
 							
@@ -434,10 +435,10 @@ begin
 									clockCycles := 0;
 								end if;
 							end if;
-						end if TransmitState;
-					end if IfThereIsDataToEmit;	
-				end if IsReadyForWrite;
-				clockCycles := clockCycles + 1;
+						end if TransmitState;	
+					end if IsReadyForWrite;
+					clockCycles := clockCycles + 1;
+				end if IfThereIsDataToEmit;
 			end if ClockSync;
 		end if ResetState;
 	end process;

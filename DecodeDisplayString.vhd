@@ -57,20 +57,20 @@ begin
 	ProcDecodeString : process (exec_state, var_index)
 	begin
 		ResetSync : if reset = '1' then
-			char_array(79 downto 72) <= "01000001";
-			char_array(71 downto 64) <= "01000010";
+			char_array(79 downto 72) <= "01000001"; -- A 01000001
+			char_array(71 downto 64) <= "01000001";
 			char_array(63 downto 56) <= "01000001";
-			char_array(55 downto 48) <= "01000010";
+			char_array(55 downto 48) <= "01000001";
 			char_array(47 downto 40) <= "01000001";
-			char_array(39 downto 32) <= "01000010";
+			char_array(39 downto 32) <= "01000001";
 			char_array(31 downto 24) <= "01000001";
-			char_array(23 downto 16) <= "01000010";
+			char_array(23 downto 16) <= "01000001";
 			char_array(15 downto 8)  <= "01000001";
 			char_array(7 downto 0)   <= "01000001";
 		elsif reset = '0' then
 			IsExecutionComplete : if exec_state = EXEC_STATE_DONE then
 				GetDisplayString : if var_index = "000" then
-					char_array(79 downto 72) <= "01000010";
+					char_array(79 downto 72) <= "01000010";	-- B 01000010
 					char_array(71 downto 64) <= "01000010";
 					char_array(63 downto 56) <= "01000010";
 					char_array(55 downto 48) <= "01000010";
@@ -81,7 +81,7 @@ begin
 					char_array(15 downto 8)  <= "01000010";
 					char_array(7 downto 0)   <= "01000010";
 				elsif var_index = "001" then
-					char_array(79 downto 72) <= "01000011";
+					char_array(79 downto 72) <= "01000011";	-- C 01000011
 					char_array(71 downto 64) <= "01000011";
 					char_array(63 downto 56) <= "01000011";
 					char_array(55 downto 48) <= "01000011";
@@ -91,6 +91,17 @@ begin
 					char_array(23 downto 16) <= "01000011";
 					char_array(15 downto 8)  <= "01000011";
 					char_array(7 downto 0)   <= "01000011";
+				elsif var_index = "010" then
+					char_array(79 downto 72) <= "01000100";	-- D 01000100
+					char_array(71 downto 64) <= "01000100";
+					char_array(63 downto 56) <= "01000100";
+					char_array(55 downto 48) <= "01000100";
+					char_array(47 downto 40) <= "01000100";
+					char_array(39 downto 32) <= "01000100";
+					char_array(31 downto 24) <= "01000100";
+					char_array(23 downto 16) <= "01000100";
+					char_array(15 downto 8)  <= "01000100";
+					char_array(7 downto 0)   <= "01000100";
 				end if GetDisplayString;
 			end if IsExecutionComplete;
 		end if ResetSync;
