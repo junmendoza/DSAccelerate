@@ -54,7 +54,6 @@ entity ProgramArgs is
 			sw1	 	: in STD_LOGIC;
 			sw2	 	: in STD_LOGIC;
 			sw3	 	: in STD_LOGIC;
-			execute	: in STD_LOGIC;
 			a_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			b_out 	: out STD_LOGIC_VECTOR (31 downto 0);
 			c_out 	: out STD_LOGIC_VECTOR (31 downto 0);
@@ -111,6 +110,10 @@ architecture Behavioral of ProgramArgs is
 	-- index into which variable to preview
 	signal var_index: STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
 	signal char_array: STD_LOGIC_VECTOR (79 downto 0) := (others => '0');
+	
+	type t_stringtable is array (0 to 2) of STD_LOGIC_VECTOR(79 downto 0);
+	signal stringtable : t_stringtable;
+	
 	
 	-- Increment counter for every execution unit completed
 	signal execState : EXECUTION_STATE := EXEC_STATE_READY;
@@ -196,6 +199,13 @@ begin
 	begin
 		ResetSync : if reset = '0' then
 			a_out <= a;
+			
+			----------------------------------------
+			-- Temp LCD 
+			-- LCD display string for this variable
+			-- Buffer this string into the preview table
+			----------------------------------------
+			
 		end if ResetSync;
 	end process assign_a;
 	
@@ -252,15 +262,13 @@ begin
 		end if ResetSync;
 	end process SetExecutionState;
 	
-	ExecutionStateTransition : process(reset, execute, executeDone)
+	ExecutionStateTransition : process(reset, executeDone)
 	begin
 		ResetSync : if reset = '1' then
 			execState <= EXEC_STATE_READY;
 		elsif reset = '0' then
 			if execState = EXEC_STATE_READY then
-				if execute = '1' then
-					execState <= EXEC_STATE_RUNNING;
-				end if;
+				execState <= EXEC_STATE_RUNNING;
 			elsif execState = EXEC_STATE_RUNNING then
 				if executeDone = '1' then
 					execState <= EXEC_STATE_DONE;
