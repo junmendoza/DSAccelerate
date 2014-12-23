@@ -228,6 +228,23 @@ begin
 		op2 => ALU3_op2,
 		result => ALU3_out
 	);
+	
+	Write_ALU_out : process(ALU1_out, ALU2_out, ALU3_out)
+	begin
+		ResetSync : if reset = '0' then
+			if select_index = X"00" then
+				array_c(0) <= ALU1_out;
+				array_c(1) <= ALU2_out;
+				array_c(2) <= ALU3_out;
+			elsif select_index = X"01" then
+				array_c(3) <= ALU1_out;
+				array_c(4) <= ALU2_out;
+				array_c(5) <= ALU3_out;
+			elsif select_index = X"02" then
+				array_c(5) <= ALU1_out;
+			end if;
+		end if ResetSync;
+	end process Write_ALU_out;
 
 end Behavioral;
 
