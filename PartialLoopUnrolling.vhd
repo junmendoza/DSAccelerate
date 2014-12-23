@@ -81,6 +81,27 @@ architecture Behavioral of PartialLoopUnrolling is
 				result : out  STD_LOGIC_VECTOR (31 downto 0)
 			  );
 	end component ALU_Add;
+	
+	component Mux31_ALU_In is
+	Port( 
+			reset : in STD_LOGIC;
+			select_index : in STD_LOGIC_VECTOR (7 downto 0);
+			
+			-- Inputs to ALU op1
+			op11 : in STD_LOGIC_VECTOR (31 downto 0);
+			op21 : in STD_LOGIC_VECTOR (31 downto 0);
+			op31 : in STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+			
+			-- Inputs to ALU op2
+			op12 : in STD_LOGIC_VECTOR (31 downto 0);
+			op22 : in STD_LOGIC_VECTOR (31 downto 0);
+			op32 : in STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+			
+			-- ALU inputs
+			op1 : out STD_LOGIC_VECTOR (31 downto 0);
+			op2 : out STD_LOGIC_VECTOR (31 downto 0)
+		 );
+	end component Mux31_ALU_In;
 
 	type t_static_array_decl is array (0 to 6) of STD_LOGIC_VECTOR(31 downto 0);
 
@@ -117,30 +138,95 @@ architecture Behavioral of PartialLoopUnrolling is
 		X"00000000" 
 	);
 	
+	constant i : integer := 1;
+	
+	signal select_index : STD_LOGIC_VECTOR(7 downto 0); 
+	
+	-- ALU in
+	signal ALU1_op1 : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU1_op2 : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU2_op1 : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU2_op2 : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU3_op1 : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU3_op2 : STD_LOGIC_VECTOR(31 downto 0); 
+	
+	-- ALU out
+	signal ALU1_out : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU2_out : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU3_out : STD_LOGIC_VECTOR(31 downto 0); 
+	
 begin
 
-	Add0 : ALU_Add port map
+	---------------------------
+	-- ALU input multiplexers
+	---------------------------
+	Mux_ALU1_in : Mux31_ALU_In port map
 	(
 		reset => reset,
-		op1 => array_a(0),
-		op2 => array_b(0),
-		result => array_c(0)
+		select_index => select_index,
+		op11	=> array_a(0),
+		op21	=> array_a(3),
+		op31	=> array_a(6),
+		op12	=> array_b(0),
+		op22	=> array_b(3),
+		op32	=> array_b(6),
+		op1 	=> ALU1_op1,
+		op2 	=> ALU1_op2
 	);
 	
-	Add1 : ALU_Add port map
+	Mux_ALU2_in : Mux31_ALU_In port map
 	(
 		reset => reset,
-		op1 => array_a(1),
-		op2 => array_b(1),
-		result => array_c(1)
+		select_index => select_index,
+		op11	=> array_a(1),
+		op21	=> array_a(4),
+		op31	=> open,
+		op12	=> array_b(1),
+		op22	=> array_b(4),
+		op32	=> open,
+		op1 	=> ALU2_op1,
+		op2 	=> ALU2_op2
 	);
 	
-	Add2 : ALU_Add port map
+	Mux_ALU3_in : Mux31_ALU_In port map
 	(
 		reset => reset,
-		op1 => array_a(2),
-		op2 => array_b(2),
-		result => array_c(2)
+		select_index => select_index,
+		op11	=> array_a(2),
+		op21	=> array_a(5),
+		op31	=> open,
+		op12	=> array_b(2),
+		op22	=> array_b(5),
+		op32	=> open,
+		op1 	=> ALU3_op1,
+		op2 	=> ALU3_op2
+	);
+
+	---------------------------
+	-- ALU 
+	---------------------------
+	ALU1_Add : ALU_Add port map
+	(
+		reset => reset,
+		op1 => ALU1_op1,
+		op2 => ALU1_op2,
+		result => ALU1_out
+	);
+	
+	ALU2_Add : ALU_Add port map
+	(
+		reset => reset,
+		op1 => ALU2_op1,
+		op2 => ALU2_op2,
+		result => ALU2_out
+	);
+	
+	ALU3_Add : ALU_Add port map
+	(
+		reset => reset,
+		op1 => ALU3_op1,
+		op2 => ALU3_op2,
+		result => ALU3_out
 	);
 
 end Behavioral;
