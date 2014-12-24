@@ -235,8 +235,10 @@ begin
 	Writeback_ALU_result : process(ALU1_result, ALU2_result, ALU3_result)
 		variable iterationCount : integer;
 	begin
-		ResetSync : if reset = '0' then
+		ResetSync : if reset = '1' then
+			select_index <= X"00";
 			
+		elsif reset = '0' then
 			-- Update ther iteration index
 			iterationCount := to_integer(signed(select_index));
 			iterationCount := iterationCount + 1;
@@ -257,17 +259,15 @@ begin
 		end if ResetSync;
 	end process Writeback_ALU_result;
 	
-	IterationControlUnit : process(clock, reset)
+	IterationControlUnit : process(reset, select_index)
 	begin
 		ResetSync : if reset = '1' then
 			loop_complete <= '0';
 		elsif reset = '0' then
 			IsExecutionDone : if loop_complete = '0' then
-				ClockSync : if rising_edge(clock) then
-					if select_index = X"03" then
-						loop_complete <= '1';
-					end if;
-				end if ClockSync;
+				if select_index = X"03" then
+					loop_complete <= '1';
+				end if;
 			end if IsExecutionDone;
 		end if ResetSync;
 	end process IterationControlUnit;
@@ -279,12 +279,10 @@ begin
 			exec_complete <= '0';
 		elsif reset = '0' then
 			IsExecutionDone : if exec_complete = '0' then
-				ClockSync : if rising_edge(clock) then
-					-- Check for all exeution unit completion
-					if loop_complete = '1' then
-						exec_complete <= '1';
-					end if;
-				end if ClockSync;
+				-- Check for all exeution unit completion
+				if loop_complete = '1' then
+					exec_complete <= '1';
+				end if;
 			end if IsExecutionDone;
 		end if ResetSync;
 	end process ExecutionControlUnit;

@@ -53,7 +53,7 @@ end Mux31_ALU_In;
 architecture Behavioral of Mux31_ALU_In is
 
 begin
-	process(select_index)
+	process(reset, select_index)
 	begin
 		ResetSync : if reset = '0' then
 			if select_index = X"00" then
