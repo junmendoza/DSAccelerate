@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -138,8 +138,11 @@ architecture Behavioral of PartialLoopUnrolling is
 		X"00000000" 
 	);
 	
-	constant i : integer := 1;
+	-- Execution flags
+	signal exec_complete : STD_LOGIC := '0'; 
+	signal loop_complete : STD_LOGIC := '0'; 
 	
+	constant i : integer := 1;
 	signal select_index : STD_LOGIC_VECTOR(7 downto 0); 
 	
 	-- ALU in
@@ -151,9 +154,9 @@ architecture Behavioral of PartialLoopUnrolling is
 	signal ALU3_op2 : STD_LOGIC_VECTOR(31 downto 0); 
 	
 	-- ALU out
-	signal ALU1_out : STD_LOGIC_VECTOR(31 downto 0); 
-	signal ALU2_out : STD_LOGIC_VECTOR(31 downto 0); 
-	signal ALU3_out : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU1_result : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU2_result : STD_LOGIC_VECTOR(31 downto 0); 
+	signal ALU3_result : STD_LOGIC_VECTOR(31 downto 0); 
 	
 begin
 
@@ -210,7 +213,7 @@ begin
 		reset => reset,
 		op1 => ALU1_op1,
 		op2 => ALU1_op2,
-		result => ALU1_out
+		result => ALU1_result
 	);
 	
 	ALU2_Add : ALU_Add port map
@@ -218,7 +221,7 @@ begin
 		reset => reset,
 		op1 => ALU2_op1,
 		op2 => ALU2_op2,
-		result => ALU2_out
+		result => ALU2_result
 	);
 	
 	ALU3_Add : ALU_Add port map
@@ -226,25 +229,65 @@ begin
 		reset => reset,
 		op1 => ALU3_op1,
 		op2 => ALU3_op2,
-		result => ALU3_out
+		result => ALU3_result
 	);
 	
-	Write_ALU_out : process(ALU1_out, ALU2_out, ALU3_out)
+	Writeback_ALU_result : process(ALU1_result, ALU2_result, ALU3_result)
+		variable iterationCount : integer;
 	begin
 		ResetSync : if reset = '0' then
+			
+			-- Update ther iteration index
+			iterationCount := to_integer(signed(select_index));
+			iterationCount := iterationCount + 1;
+			select_index <= std_logic_vector(to_signed(iterationCount, 8));
+			
+			-- Writeback to array
 			if select_index = X"00" then
-				array_c(0) <= ALU1_out;
-				array_c(1) <= ALU2_out;
-				array_c(2) <= ALU3_out;
+				array_c(0) <= ALU1_result;
+				array_c(1) <= ALU2_result;
+				array_c(2) <= ALU3_result;
 			elsif select_index = X"01" then
-				array_c(3) <= ALU1_out;
-				array_c(4) <= ALU2_out;
-				array_c(5) <= ALU3_out;
+				array_c(3) <= ALU1_result;
+				array_c(4) <= ALU2_result;
+				array_c(5) <= ALU3_result;
 			elsif select_index = X"02" then
-				array_c(5) <= ALU1_out;
+				array_c(5) <= ALU1_result;
 			end if;
 		end if ResetSync;
-	end process Write_ALU_out;
+	end process Writeback_ALU_result;
+	
+	IterationControlUnit : process(clock, reset)
+	begin
+		ResetSync : if reset = '1' then
+			loop_complete <= '0';
+		elsif reset = '0' then
+			IsExecutionDone : if loop_complete = '0' then
+				ClockSync : if rising_edge(clock) then
+					if select_index = X"03" then
+						loop_complete <= '1';
+					end if;
+				end if ClockSync;
+			end if IsExecutionDone;
+		end if ResetSync;
+	end process IterationControlUnit;
+	
+	-- ExecutionControlUnit will wait for all Execution Units to complete and then flag exec_done
+	ExecutionControlUnit : process(reset, loop_complete)
+	begin
+		ResetSync : if reset = '1' then
+			exec_complete <= '0';
+		elsif reset = '0' then
+			IsExecutionDone : if exec_complete = '0' then
+				ClockSync : if rising_edge(clock) then
+					-- Check for all exeution unit completion
+					if loop_complete = '1' then
+						exec_complete <= '1';
+					end if;
+				end if ClockSync;
+			end if IsExecutionDone;
+		end if ResetSync;
+	end process ExecutionControlUnit;
 
 end Behavioral;
 
